@@ -1,0 +1,52 @@
+@inject IEnumerable<DiscoveredContext> DiscoveredContexts
+
+<Sidebar Href="/"
+         ImageSrc="https://demos.blazorbootstrap.com/images/logo/logo-white.svg"
+         Title="Blazor Bootstrap"
+         BadgeText="3.4.0"
+         DataProvider="SidebarDataProvider"
+         WidthUnit="Unit.Px" />
+@code {
+    
+    private IEnumerable<NavItem>? _navItems;
+
+    private async Task<SidebarDataProviderResult> SidebarDataProvider(SidebarDataProviderRequest request)
+    {
+        _navItems ??= GetNavItems();
+
+        return await Task.FromResult(request.ApplyTo(_navItems));
+    }
+
+    private IEnumerable<NavItem> GetNavItems()
+    {
+        foreach (var context in DiscoveredContexts ?? [])
+        {
+            yield return new NavItem()
+            {
+                Text = context.ContextType.Name,
+                IconName = IconName.DatabaseFill,
+                Id = context.ContextType.Name
+            };
+            yield return new NavItem()
+            {
+                Text = "Info",
+                IconName = IconName.InfoCircle,
+                Id = context.ContextType.Name+"info",
+                Href = $"DbContext/{context.ContextType.Name}/Info"
+            };
+
+            foreach (var set in context.Sets)
+            {
+                
+                yield return new NavItem()
+                {
+                    Text = set.EntityType.Name,
+                    IconName = IconName.Table,
+                    Id = set.EntityType.Name,
+                    Href = $"DbContext/{context.ContextType.Name}/DbSet",
+                    ParentId = context.ContextType.Name
+                };
+            }
+        }
+    }
+}
