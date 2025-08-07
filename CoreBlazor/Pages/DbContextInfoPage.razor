@@ -1,0 +1,18 @@
+@page "/DbContext/{DbContext}/Info"
+@using CoreBlazor.Components
+@inject IEnumerable<DiscoveredContext> DiscoveredContexts
+
+<DynamicComponent type="@ComponentType"/>
+
+@code {
+    [Parameter]
+    public string DbContext { get; set; }
+    public Type ComponentType { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        var contextType = DiscoveredContexts.First(x => x.ContextType.Name == DbContext).ContextType;
+        ComponentType = typeof(DbContextInfoComponent<>).MakeGenericType(contextType);
+    }
+
+}

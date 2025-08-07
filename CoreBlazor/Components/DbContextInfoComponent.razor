@@ -1,0 +1,72 @@
+@using Microsoft.EntityFrameworkCore
+@typeparam TContext where TContext: Microsoft.EntityFrameworkCore.DbContext
+@inject IServiceProvider ServiceProvider;
+<table class="table table-hover table-info">
+    <tbody>
+    <tr>
+        <th>
+            @nameof(ContextName)
+        </th>
+        @ContextName
+    </tr>
+    @if (!string.IsNullOrEmpty(Provider))
+    {
+        <tr>
+            <th>
+                @nameof(Provider)
+            </th>
+            @Provider
+        </tr>
+    }
+    @if (!string.IsNullOrEmpty(DataBase))
+    {
+        <tr>
+            <th>
+                @nameof(DataBase)
+            </th>
+            @DataBase
+        </tr>
+    }
+    @if (!string.IsNullOrEmpty(Source))
+    {
+        <tr>
+            <th>
+                @nameof(Source)
+            </th>
+            @Source
+        </tr>
+    }
+    @if (!string.IsNullOrEmpty(ServerVersion))
+    {
+        <tr>
+            <th>
+                @nameof(ServerVersion)
+            </th>
+            @ServerVersion
+        </tr>
+    }
+    </tbody>
+</table>
+@code {
+
+    public string ContextName { get; set; }
+    public string? Provider { get; set; }
+    public string? DataBase { get; set; }
+    public string? Source { get; set; }
+    public string? ServerVersion { get; set; }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        var context = ServiceProvider.GetRequiredService<TContext>();
+        ContextName = context.GetType().Name;
+        Provider = context.Database.ProviderName;
+        if (context.Database.IsRelational())
+        {
+            await using var connection = context.Database.GetDbConnection();
+            DataBase = connection.Database;
+            Source = connection.DataSource;
+            ServerVersion = connection.ServerVersion;
+        }
+    }
+
+}
