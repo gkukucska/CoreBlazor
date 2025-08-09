@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata;
 
 namespace DemoDb;
 
@@ -15,5 +16,18 @@ public class DemoDbContext : DbContext
     {
         optionsBuilder.UseInMemoryDatabase("DemoDb");
         base.OnConfiguring(optionsBuilder);
+    }
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ParentEntity>()
+            .HasMany(e => e.FatheredChildren)
+            .WithOne(e => e.Father)
+            .HasForeignKey(e => e.FatherId)
+            .IsRequired();
+        modelBuilder.Entity<ParentEntity>()
+            .HasMany(e => e.MotheredChildren)
+            .WithOne(e => e.Mother)
+            .HasForeignKey(e => e.MotherId)
+            .IsRequired();
     }
 }

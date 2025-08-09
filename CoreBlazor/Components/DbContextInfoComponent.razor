@@ -1,50 +1,50 @@
 @using Microsoft.EntityFrameworkCore
-@typeparam TContext where TContext: Microsoft.EntityFrameworkCore.DbContext
-@inject IServiceProvider ServiceProvider;
-<table class="table table-hover table-info">
+@using Microsoft.Extensions.DependencyInjection
+@typeparam TContext where TContext : Microsoft.EntityFrameworkCore.DbContext
+@inject IServiceProvider ServiceProvider
+<table class="table table-hover table-bordered table-striped">
     <tbody>
-    <tr>
-        <th>
-            @nameof(ContextName)
-        </th>
-        @ContextName
-    </tr>
-    @if (!string.IsNullOrEmpty(Provider))
-    {
         <tr>
             <th>
-                @nameof(Provider)
+                @nameof(ContextName)
             </th>
-            @Provider
+            <td>
+                @ContextName
+            </td>
         </tr>
-    }
-    @if (!string.IsNullOrEmpty(DataBase))
-    {
-        <tr>
-            <th>
-                @nameof(DataBase)
-            </th>
-            @DataBase
-        </tr>
-    }
-    @if (!string.IsNullOrEmpty(Source))
-    {
-        <tr>
-            <th>
-                @nameof(Source)
-            </th>
-            @Source
-        </tr>
-    }
-    @if (!string.IsNullOrEmpty(ServerVersion))
-    {
-        <tr>
-            <th>
-                @nameof(ServerVersion)
-            </th>
-            @ServerVersion
-        </tr>
-    }
+        @if (!string.IsNullOrEmpty(Provider))
+        {
+            <tr>
+                <th>
+                    @nameof(Provider)
+                </th>
+                <td>
+                    @Provider
+                </td>
+            </tr>
+        }
+        @if (!string.IsNullOrEmpty(DataBase))
+        {
+            <tr>
+                <th>
+                    @nameof(DataBase)
+                </th>
+                <td>
+                    @DataBase
+                </td>
+            </tr>
+        }
+        @if (!string.IsNullOrEmpty(Source))
+        {
+            <tr>
+                <th>
+                    @nameof(Source)
+                </th>
+                <td>
+                    @Source
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
 @code {
@@ -53,8 +53,7 @@
     public string? Provider { get; set; }
     public string? DataBase { get; set; }
     public string? Source { get; set; }
-    public string? ServerVersion { get; set; }
-    
+
     protected override async Task OnParametersSetAsync()
     {
         var context = ServiceProvider.GetRequiredService<TContext>();
@@ -65,7 +64,6 @@
             await using var connection = context.Database.GetDbConnection();
             DataBase = connection.Database;
             Source = connection.DataSource;
-            ServerVersion = connection.ServerVersion;
         }
     }
 

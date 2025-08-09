@@ -4,8 +4,10 @@ public class ParentEntity : Person
 {
     
     public Guid Id { get; set; }
-    
-    public List<ChildEntity> Children { get; set; } = new List<ChildEntity>();
+
+    public ICollection<ChildEntity> FatheredChildren { get; set; } = [];
+
+    public ICollection<ChildEntity> MotheredChildren { get; set; } = [];
 
     public JobEntity Job { get; set; }
 }
