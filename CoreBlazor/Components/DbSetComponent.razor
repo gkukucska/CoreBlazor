@@ -1,0 +1,43 @@
+﻿@using System.Linq.Expressions
+@using System.Reflection
+@using CoreBlazor.Utils
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.DependencyInjection
+@typeparam TContext where TContext : Microsoft.EntityFrameworkCore.DbContext
+@typeparam TEntity where TEntity : class
+@inject IServiceProvider ServiceProvider;
+<Grid TItem="TEntity" DataProvider="GetEntities"
+      Class="table table-hover table-bordered table-striped"
+      AllowFiltering="true"
+      AllowSorting="true"
+      AllowPaging="true"
+      PageSize="20">
+    <GridColumns>
+        @foreach (var prop in typeof(TEntity).GetProperties().Where(x=>x.IsDisplayable()))
+        {
+            <GridColumn TItem="TEntity" HeaderText="@prop.Name" PropertyName="@prop.Name" Filterable="@IsFilterable(prop)" Sortable="@IsSortable(prop)" SortString="@prop.Name" SortKeySelector="prop.GetMemberAccessExpressionWithConversion<TEntity,IComparable>()">
+                @prop.GetValue(@context)
+            </GridColumn>
+        }
+    </GridColumns>
+</Grid>
+
+@code {
+    private async Task<GridDataProviderResult<TEntity>> GetEntities(GridDataProviderRequest<TEntity> request)
+    {
+        var entities = ServiceProvider.GetRequiredService<TContext>().IncludeNavigations<TEntity>().AsNoTracking();
+
+        return await Task.FromResult(request.ApplyTo(entities));
+    }
+
+    private bool IsFilterable(PropertyInfo prop)
+    {
+        var context = ServiceProvider.GetRequiredService<TContext>();
+        return !context.IsNavigation<TEntity>(prop);
+    }
+    private bool IsSortable(PropertyInfo prop)
+    {
+        return typeof(IComparable).IsAssignableFrom(prop.PropertyType);
+    }
+
+}

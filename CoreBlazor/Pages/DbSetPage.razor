@@ -1,0 +1,21 @@
+﻿@page "/DbContext/{DbContext}/DbSet/{DbSet}"
+@using CoreBlazor.Components
+@inject IEnumerable<DiscoveredContext> DiscoveredContexts
+
+<DynamicComponent Type="@ComponentType" />
+
+@code {
+    [Parameter]
+    public string DbContext { get; set; }
+    [Parameter]
+    public string DbSet { get; set; }
+    public Type ComponentType { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        var discoveredContext = DiscoveredContexts.Single(x => x.ContextType.Name == DbContext);
+        var discoveredSet = discoveredContext.Sets.Single(x => x.EntityType.Name == DbSet);
+        ComponentType = typeof(DbSetComponent<,>).MakeGenericType(discoveredContext.ContextType, discoveredSet.EntityType);
+    }
+
+}

@@ -1,7 +1,6 @@
 @inject IEnumerable<DiscoveredContext> DiscoveredContexts
 @using BlazorBootstrap
-<Sidebar Href="/"
-         Title="CoreBlazor"
+<Sidebar2 Title="CoreBlazor"
          BadgeText="1.0.0"
          DataProvider="SidebarDataProvider"
          WidthUnit="Unit.Px" />
@@ -9,7 +8,7 @@
     
     private IEnumerable<NavItem>? _navItems;
 
-    private async Task<SidebarDataProviderResult> SidebarDataProvider(SidebarDataProviderRequest request)
+    private async Task<Sidebar2DataProviderResult> SidebarDataProvider(Sidebar2DataProviderRequest request)
     {
         _navItems ??= GetNavItems();
 
@@ -31,7 +30,8 @@
                 Text = "Info",
                 IconName = IconName.InfoCircle,
                 Id = context.ContextType.Name+"info",
-                Href = $"DbContext/{context.ContextType.Name}/Info"
+                Href = $"DbContext/{context.ContextType.Name}/Info",
+                ParentId = context.ContextType.Name
             };
 
             foreach (var set in context.Sets)
@@ -41,8 +41,8 @@
                 {
                     Text = set.EntityType.Name,
                     IconName = IconName.Table,
-                    Id = set.EntityType.Name,
-                    Href = $"DbContext/{context.ContextType.Name}/DbSet",
+                    Id = context.ContextType.Name+ set.EntityType.Name,
+                    Href = $"DbContext/{context.ContextType.Name}/DbSet/{set.EntityType.Name}",
                     ParentId = context.ContextType.Name
                 };
             }

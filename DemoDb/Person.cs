@@ -4,10 +4,15 @@ namespace DemoDb;
 
 public class Person
 {
+    public Guid Id { get; set; }
     [Required] public string Name { get; set; } = null!;
 
     [Required]
     public DateTime BornAt { get; set; }
     
     public Gender Gender { get; set; }
+
+    public int JobId { get; set; }
+    public JobEntity? Job { get; set; } 
+    public override string ToString() => Name;
 }

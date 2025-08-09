@@ -1,33 +1,47 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Reflection.Metadata;
+using Bogus;
 
 namespace DemoDb;
 
 public class DemoDbContext : DbContext
 {
-    public DbSet<ParentEntity> Parents { get; set; }
+    public DbSet<Person> People { get; set; }
 
-    public DbSet<ChildEntity> Children { get; set; }
 
     public DbSet<JobEntity> Jobs { get; set; }
     
+    public DemoDbContext() : base()
+    {
+        Database.EnsureCreated();
+    }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseInMemoryDatabase("DemoDb");
-        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.UseInMemoryDatabase("FamilyDb");
     }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<ParentEntity>()
-            .HasMany(e => e.FatheredChildren)
-            .WithOne(e => e.Father)
-            .HasForeignKey(e => e.FatherId)
-            .IsRequired();
-        modelBuilder.Entity<ParentEntity>()
-            .HasMany(e => e.MotheredChildren)
-            .WithOne(e => e.Mother)
-            .HasForeignKey(e => e.MotherId)
-            .IsRequired();
+
+        // Generate fake data
+
+        var jobFaker = new Faker<JobEntity>()
+            .RuleFor(j => j.Id, f => f.IndexFaker + 1)
+            .RuleFor(j => j.Name, f => f.Name.JobTitle())
+            .RuleFor(j => j.Salary, f => f.Random.Int(30000, 150000));
+
+        var jobs = jobFaker.Generate(100);
+        modelBuilder.Entity<JobEntity>().HasData(jobs);
+
+        var personFaker = new Faker<Person>()
+            .RuleFor(p => p.Id, f => Guid.NewGuid())
+            .RuleFor(p => p.Name, f => f.Name.FullName())
+            .RuleFor(p => p.Gender, f => Gender.Male)
+            .RuleFor(p => p.BornAt, f => f.Date.Past(30))
+            .RuleFor(p => p.JobId, f => f.PickRandom(jobs.Select(j => j.Id)));
+        var people = personFaker.Generate(2000);
+        modelBuilder.Entity<Person>().HasData(people);
+
     }
 }
