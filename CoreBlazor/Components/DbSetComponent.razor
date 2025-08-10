@@ -13,9 +13,9 @@
       AllowPaging="true"
       PageSize="20">
     <GridColumns>
-        @foreach (var prop in typeof(TEntity).GetProperties().Where(x=>x.IsDisplayable()))
+        @foreach (var prop in typeof(TEntity).GetProperties().Where(x => x.IsDisplayable()))
         {
-            <GridColumn TItem="TEntity" HeaderText="@prop.Name" PropertyName="@prop.Name" Filterable="@IsFilterable(prop)" Sortable="@IsSortable(prop)" SortString="@prop.Name" SortKeySelector="prop.GetMemberAccessExpressionWithConversion<TEntity,IComparable>()">
+            <GridColumn TItem="TEntity" HeaderText="@prop.Name" PropertyName="@prop.Name" Filterable="@IsFilterable(prop)" Sortable="@IsSortable(prop)" SortString="@prop.Name" SortKeySelector="prop.GetMemberAccessExpressionWithConversion<TEntity, IComparable>()">
                 @prop.GetValue(@context)
             </GridColumn>
         }
@@ -25,9 +25,17 @@
 @code {
     private async Task<GridDataProviderResult<TEntity>> GetEntities(GridDataProviderRequest<TEntity> request)
     {
-        var entities = ServiceProvider.GetRequiredService<TContext>().IncludeNavigations<TEntity>().AsNoTracking();
-
-        return await Task.FromResult(request.ApplyTo(entities));
+        var entities = ServiceProvider.GetRequiredService<TContext>()
+                                      .DbSetWithDisplayableNavigations<TEntity>()
+                                      .AsNoTracking()
+                                      .WithFiltering(request.Filters)
+                                      .WithSorting(request.Sorting);
+        return new GridDataProviderResult<TEntity>
+        {
+            Data = await entities.WithPagination(request).ToListAsync(),
+            TotalCount = await entities.CountAsync(),
+            PageNumber = request.PageNumber            
+        };
     }
 
     private bool IsFilterable(PropertyInfo prop)
@@ -35,6 +43,7 @@
         var context = ServiceProvider.GetRequiredService<TContext>();
         return !context.IsNavigation<TEntity>(prop);
     }
+
     private bool IsSortable(PropertyInfo prop)
     {
         return typeof(IComparable).IsAssignableFrom(prop.PropertyType);
