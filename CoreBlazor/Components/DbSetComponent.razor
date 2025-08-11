@@ -6,11 +6,15 @@
 @typeparam TContext where TContext : Microsoft.EntityFrameworkCore.DbContext
 @typeparam TEntity where TEntity : class
 @inject IServiceProvider ServiceProvider;
+@inject NavigationManager NavigationManager
 <Grid TItem="TEntity" DataProvider="GetEntities"
       Class="table table-hover table-bordered table-striped"
       AllowFiltering="true"
       AllowSorting="true"
       AllowPaging="true"
+      Responsive="true"
+      AllowRowClick="true"
+      OnRowDoubleClick="@GoToEntityEditorPage"
       PageSize="20">
     <GridColumns>
         @foreach (var prop in typeof(TEntity).GetProperties().Where(x => x.IsDisplayable()))
@@ -49,4 +53,15 @@
         return typeof(IComparable).IsAssignableFrom(prop.PropertyType);
     }
 
+
+    private Task GoToEntityEditorPage(GridRowEventArgs<TEntity> args)
+    {
+        var context = ServiceProvider.GetRequiredService<TContext>();
+        var primaryKey = context.Model.FindEntityType(typeof(TEntity))!
+            .FindPrimaryKey()
+            .Properties
+            .Single();
+        NavigationManager.NavigateTo($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Edit/{primaryKey.PropertyInfo.GetValue(args.Item)}");
+        return Task.CompletedTask;
+    }
 }

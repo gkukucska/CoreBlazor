@@ -1,0 +1,32 @@
+﻿@using CoreBlazor.Utils
+@using Microsoft.Extensions.DependencyInjection
+@using System.Linq.Expressions
+@typeparam TContext where TContext : Microsoft.EntityFrameworkCore.DbContext
+@typeparam TEntity where TEntity : class
+@inject IServiceProvider ServiceProvider
+<EditForm Model ="Entity" OnValidSubmit="OnSaveChanges">
+    <PropertyEditorComponent TContext="TContext" TEntity="TEntity" Entity="@Entity" />
+    <Button Color="ButtonColor.Primary" Type="ButtonType.Submit" Class="m-1">Save Changes</Button>
+</EditForm>
+@code{
+    [Parameter]
+    public string EntityId { get; set; }
+
+    public TEntity Entity { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        var context = ServiceProvider.GetRequiredService<TContext>();
+        var set = context.Set<TEntity>();
+        var primarykey = context.Model.FindEntityType(typeof(TEntity))!.FindPrimaryKey().Properties.Single().PropertyInfo;
+        ParameterExpression parameterExpression = Expression.Parameter(typeof(TEntity));
+        var property= Expression.Property(parameterExpression, primarykey.Name);
+        var filter = ExpressionExtensions.GetExpressionDelegate<TEntity>(parameterExpression,new FilterItem(primarykey.Name,EntityId,FilterOperator.Equals, default));
+        // var lambda = Expression.Lambda<Func<TEntity, bool>>(filter, parameterExpression);
+        Entity = set.Single(filter);
+    }
+    private void OnSaveChanges(EditContext args)
+    {
+        
+    }
+}

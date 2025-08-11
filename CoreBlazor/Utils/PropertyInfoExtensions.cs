@@ -24,7 +24,13 @@ public static class PropertyInfoExtensions
     {
         var defaultExpression = Expression.Parameter(typeof(T));
         Expression property = Expression.Property(defaultExpression, pi);
-        return Expression.Lambda<Func<T,TProperty>>(property, defaultExpression);
+        return Expression.Lambda<Func<T, TProperty>>(property, defaultExpression);
+    }
+    public static Expression<Func<TProperty>> GetValueAccessExpression<T, TProperty>(this PropertyInfo pi, T source)
+    {
+        var defaultExpression = Expression.Constant(source,typeof(T));
+        Expression property = Expression.Property(defaultExpression, pi);
+        return Expression.Lambda<Func<TProperty>>(property);
     }
 
     public static bool IsDisplayable(this PropertyInfo pi) => !pi.PropertyType.IsGenericType;
