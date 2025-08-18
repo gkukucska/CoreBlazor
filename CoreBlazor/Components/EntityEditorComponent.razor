@@ -17,7 +17,7 @@
     protected override void OnParametersSet()
     {
         var context = ServiceProvider.GetRequiredService<TContext>();
-        var set = context.Set<TEntity>();
+        var set = context.DbSetWithDisplayableNavigations<TEntity>();
         var primarykey = context.Model.FindEntityType(typeof(TEntity))!.FindPrimaryKey().Properties.Single().PropertyInfo;
         ParameterExpression parameterExpression = Expression.Parameter(typeof(TEntity));
         var property= Expression.Property(parameterExpression, primarykey.Name);

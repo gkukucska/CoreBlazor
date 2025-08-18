@@ -1,6 +1,8 @@
 ﻿@using CoreBlazor.Utils
+@using Microsoft.Extensions.DependencyInjection
 @typeparam TContext where TContext : Microsoft.EntityFrameworkCore.DbContext
 @typeparam TEntity where TEntity : class
+@inject IServiceProvider ServiceProvider
 
 @foreach (var property in typeof(TEntity).GetProperties().Where(property => property.IsDisplayable()))
 {
@@ -118,12 +120,28 @@
     {
         <DynamicComponent Type="typeof(EnumPropertyEditorComponent<,>).MakeGenericType(typeof(TEntity), property.PropertyType)"
                           Parameters="@(new Dictionary<string,object>{
-                                    {nameof(EnumPropertyEditorComponent<object,object>.Entity), Entity},
-                                    {nameof(EnumPropertyEditorComponent<object,object>.PropertyName), property.Name}
-                  })" />
+                                                                                          {nameof(EnumPropertyEditorComponent<object,object>.Entity), Entity},
+                                                                                          {nameof(EnumPropertyEditorComponent<object,object>.PropertyName), property.Name}
+                                                                        })" />
+    }
+    if (ServiceProvider.GetRequiredService<TContext>().IsNavigation<TEntity>(property))
+    {
+        <div class="form-group row mb-3">
+            <label class="col-md-2 col-form-label">@property.Name</label>
+            <div class="col-md-10 container">
+                <div class="row">
+                    <div class="col-sm w-75" type="text" readonly>@property.GetValue(Entity)?.ToString()</div>
+                    <Button class="col-sm w-25" Color="ButtonColor.Primary">Select</Button>
+                </div>
+            </div>
+        </div>
     }
 }
 @code {
     [Parameter]
-    public TEntity Entity { get; set; }
+    public TEntity Entity
+    {
+        get;
+        set;
+    }
 }
