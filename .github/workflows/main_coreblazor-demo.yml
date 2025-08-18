@@ -51,9 +51,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_CC71C7C9508B4120A102D0DD1930587E }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E978CE09F44D4AD082A47C51FFFCF80A }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_485750522D5F4AAF979837D10C31E4A1 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F8E3391FA4BC4039AB139AAEE6C1D9A9 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_56DD0EBC07E2485DB0A5C0ABAE1ACE48 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6BD4B208CC7D4303BE2802E7A0D67476 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -62,5 +62,4 @@ jobs:
           app-name: 'coreblazor-demo'
           slot-name: 'Production'
           package: .
-
           
