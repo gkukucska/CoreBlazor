@@ -7,6 +7,7 @@
 <EditForm Model ="Entity" OnValidSubmit="OnSaveChanges">
     <PropertyEditorComponent TContext="TContext" TEntity="TEntity" Entity="@Entity" />
     <Button Color="ButtonColor.Primary" Type="ButtonType.Submit" Class="m-1">Save Changes</Button>
+    <Button Color="ButtonColor.Link" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}")" Class="m-1">Go back</Button>
 </EditForm>
 @code{
     [Parameter]
