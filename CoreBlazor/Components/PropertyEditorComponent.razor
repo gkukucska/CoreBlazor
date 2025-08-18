@@ -99,7 +99,7 @@
         <div class="form-group row mb-3">
             <label class="col-md-2 col-form-label">@property.Name</label>
             <div class="col-md-10">
-                <DateInput TValue="DateTime" Value="@((DateTime)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, DateTime>(Entity)"  ValueChanged="@(value => property.SetValue(Entity, value))" />
+                <DateInput TValue="DateTime" Value="@((DateTime)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, DateTime>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
                 <ValidationMessage TValue="DateTime" For="@(property.GetValueAccessExpression<TEntity, DateTime>(Entity))" />
             </div>
         </div>
@@ -113,6 +113,14 @@
                 <ValidationMessage TValue="string" For="@(property.GetValueAccessExpression<TEntity, string>(Entity))" />
             </div>
         </div>
+    }
+    if (property.PropertyType.IsEnum)
+    {
+        <DynamicComponent Type="typeof(EnumPropertyEditorComponent<,>).MakeGenericType(typeof(TEntity), property.PropertyType)"
+                          Parameters="@(new Dictionary<string,object>{
+                                    {nameof(EnumPropertyEditorComponent<object,object>.Entity), Entity},
+                                    {nameof(EnumPropertyEditorComponent<object,object>.PropertyName), property.Name}
+                  })" />
     }
 }
 @code {

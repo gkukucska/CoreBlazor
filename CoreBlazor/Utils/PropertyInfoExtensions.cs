@@ -26,9 +26,17 @@ public static class PropertyInfoExtensions
         Expression property = Expression.Property(defaultExpression, pi);
         return Expression.Lambda<Func<T, TProperty>>(property, defaultExpression);
     }
+    public static Expression<Func<TProperty>> GetValueAccessExpressionWithConversion<T, TProperty>(this PropertyInfo pi, T source)
+    {
+        var defaultExpression = Expression.Constant(source, typeof(T));
+        Expression property = Expression.Property(defaultExpression, pi);
+        if (pi.PropertyType != typeof(TProperty))
+            property = Expression.Convert(property, typeof(TProperty));
+        return Expression.Lambda<Func<TProperty>>(property);
+    }
     public static Expression<Func<TProperty>> GetValueAccessExpression<T, TProperty>(this PropertyInfo pi, T source)
     {
-        var defaultExpression = Expression.Constant(source,typeof(T));
+        var defaultExpression = Expression.Constant(source, typeof(T));
         Expression property = Expression.Property(defaultExpression, pi);
         return Expression.Lambda<Func<TProperty>>(property);
     }

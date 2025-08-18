@@ -1,0 +1,30 @@
+﻿@using System.Reflection
+@using CoreBlazor.Utils
+@typeparam TEntity
+@typeparam TProperty
+<div class="form-group row mb-3">
+    <label class="col-md-2 col-form-label">@PropertyName</label>
+    <div class="col-md-10">
+        <InputSelect TValue="TProperty" class="form-select" ValueExpression="_propertyInfo.GetValueAccessExpression<TEntity, TProperty>(Entity)"
+                ValueChanged="value =>_propertyInfo.SetValue(Entity,value)">
+            @foreach (var item in Enum.GetValues(_propertyInfo.PropertyType).OfType<TProperty>())
+            {
+                <option value="@item"> @item.ToString()</option>
+            }
+        </InputSelect>
+        <ValidationMessage TValue="TProperty" For="@(_propertyInfo.GetValueAccessExpression<TEntity, TProperty>(Entity))" />
+    </div>
+</div>
+@code {
+    private PropertyInfo _propertyInfo;
+    [Parameter]
+    public string PropertyName { get; set; }
+    [Parameter]
+    public TEntity Entity { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        _propertyInfo = typeof(TEntity).GetProperty(PropertyName, typeof(TProperty));
+        base.OnParametersSet();
+    }
+}
