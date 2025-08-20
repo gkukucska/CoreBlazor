@@ -5,7 +5,8 @@ namespace DemoDb;
 public class Person
 {
     public Guid Id { get; set; }
-    [Required] public string Name { get; set; } = null!;
+    [Required] 
+    public string Name { get; set; }
 
     [Required]
     public DateTime BornAt { get; set; }

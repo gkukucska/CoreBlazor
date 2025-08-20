@@ -7,6 +7,9 @@
 @typeparam TEntity where TEntity : class
 @inject IServiceProvider ServiceProvider;
 @inject NavigationManager NavigationManager
+<Button Color="ButtonColor.Primary" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Create")">
+    Add New Entity
+</Button>
 <Grid TItem="TEntity" DataProvider="GetEntities"
       Class="table table-hover table-bordered table-striped"
       AllowFiltering="true"
@@ -29,7 +32,8 @@
 @code {
     private async Task<GridDataProviderResult<TEntity>> GetEntities(GridDataProviderRequest<TEntity> request) 
     => await ServiceProvider.GetRequiredService<TContext>()
-                            .ApplyTo<TEntity>(request);
+                            .ApplyTo<TEntity>(request)
+                            .ConfigureAwait(false);
 
     private bool IsFilterable(PropertyInfo prop)
     {
