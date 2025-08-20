@@ -27,20 +27,9 @@
 </Grid>
 
 @code {
-    private async Task<GridDataProviderResult<TEntity>> GetEntities(GridDataProviderRequest<TEntity> request)
-    {
-        var entities = ServiceProvider.GetRequiredService<TContext>()
-                                      .DbSetWithDisplayableNavigations<TEntity>()
-                                      .AsNoTracking()
-                                      .WithFiltering(request.Filters)
-                                      .WithSorting(request.Sorting);
-        return new GridDataProviderResult<TEntity>
-        {
-            Data = await entities.WithPagination(request).ToListAsync(),
-            TotalCount = await entities.CountAsync(),
-            PageNumber = request.PageNumber            
-        };
-    }
+    private async Task<GridDataProviderResult<TEntity>> GetEntities(GridDataProviderRequest<TEntity> request) 
+    => await ServiceProvider.GetRequiredService<TContext>()
+                            .ApplyTo<TEntity>(request);
 
     private bool IsFilterable(PropertyInfo prop)
     {
@@ -57,11 +46,8 @@
     private Task GoToEntityEditorPage(GridRowEventArgs<TEntity> args)
     {
         var context = ServiceProvider.GetRequiredService<TContext>();
-        var primaryKey = context.Model.FindEntityType(typeof(TEntity))!
-            .FindPrimaryKey()
-            .Properties
-            .Single();
-        NavigationManager.NavigateTo($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Edit/{primaryKey.PropertyInfo.GetValue(args.Item)}");
+        var primaryKey = context.GetPrimaryKey<TEntity>();
+        NavigationManager.NavigateTo($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Edit/{primaryKey.PropertyInfo!.GetValue(args.Item)}");
         return Task.CompletedTask;
     }
 }

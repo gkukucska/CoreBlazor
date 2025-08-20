@@ -1,141 +1,158 @@
 ﻿@using CoreBlazor.Utils
+@using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.DependencyInjection
+@using System.Reflection
 @typeparam TContext where TContext : Microsoft.EntityFrameworkCore.DbContext
 @typeparam TEntity where TEntity : class
 @inject IServiceProvider ServiceProvider
 
-@foreach (var property in typeof(TEntity).GetProperties().Where(property => property.IsDisplayable()))
+@if (SelectingNavigationProperty is null)
 {
-    if (property.PropertyType == typeof(bool))
+
+    @foreach (var property in typeof(TEntity).GetProperties().Where(property => property.IsDisplayable()))
     {
-        <div class="form-group row mb-3">
-            <label class="col-md-2 col-form-label">@property.Name</label>
-            <div class="col-md-10">
-                <CheckboxInput TValue="bool" Value="@((bool)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, bool>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
-                <ValidationMessage TValue="bool" For="@(property.GetValueAccessExpression<TEntity, bool>(Entity))" />
-            </div>
-        </div>
-    }
-    if (property.PropertyType == typeof(int))
-    {
-        <div class="form-group row mb-3">
-            <label class="col-md-2 col-form-label">@property.Name</label>
-            <div class="col-md-10">
-                <NumberInput TValue="int" Value="@((int)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, int>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
-                <ValidationMessage TValue="int" For="@(property.GetValueAccessExpression<TEntity, int>(Entity))" />
-            </div>
-        </div>
-    }
-    if (property.PropertyType == typeof(uint))
-    {
-        <div class="form-group row mb-3">
-            <label class="col-md-2 col-form-label">@property.Name</label>
-            <div class="col-md-10">
-                <NumberInput TValue="uint" Value="@((uint)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, uint>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
-                <ValidationMessage TValue="uint" For="@(property.GetValueAccessExpression<TEntity, uint>(Entity))" />
-            </div>
-        </div>
-    }
-    if (property.PropertyType == typeof(short))
-    {
-        <div class="form-group row mb-3">
-            <label class="col-md-2 col-form-label">@property.Name</label>
-            <div class="col-md-10">
-                <NumberInput TValue="short" Value="@((short)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, short>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
-                <ValidationMessage TValue="short" For="@(property.GetValueAccessExpression<TEntity, short>(Entity))" />
-            </div>
-        </div>
-    }
-    if (property.PropertyType == typeof(ushort))
-    {
-        <div class="form-group row mb-3">
-            <label class="col-md-2 col-form-label">@property.Name</label>
-            <div class="col-md-10">
-                <NumberInput TValue="ushort" Value="@((ushort)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, ushort>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
-                <ValidationMessage TValue="ushort" For="@(property.GetValueAccessExpression<TEntity, ushort>(Entity))" />
-            </div>
-        </div>
-    }
-    if (property.PropertyType == typeof(long))
-    {
-        <div class="form-group row mb-3">
-            <label class="col-md-2 col-form-label">@property.Name</label>
-            <div class="col-md-10">
-                <NumberInput TValue="long" Value="@((long)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, long>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
-                <ValidationMessage TValue="long" For="@(property.GetValueAccessExpression<TEntity, long>(Entity))" />
-            </div>
-        </div>
-    }
-    if (property.PropertyType == typeof(ulong))
-    {
-        <div class="form-group row mb-3">
-            <label class="col-md-2 col-form-label">@property.Name</label>
-            <div class="col-md-10">
-                <NumberInput TValue="ulong" Value="@((ulong)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, ulong>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
-                <ValidationMessage TValue="ulong" For="@(property.GetValueAccessExpression<TEntity, ulong>(Entity))" />
-            </div>
-        </div>
-    }
-    if (property.PropertyType == typeof(float))
-    {
-        <div class="form-group row mb-3">
-            <label class="col-md-2 col-form-label">@property.Name</label>
-            <div class="col-md-10">
-                <NumberInput TValue="float" Value="@((float)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, float>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
-                <ValidationMessage TValue="float" For="@(property.GetValueAccessExpression<TEntity, float>(Entity))" />
-            </div>
-        </div>
-    }
-    if (property.PropertyType == typeof(double))
-    {
-        <div class="form-group row mb-3">
-            <label class="col-md-2 col-form-label">@property.Name</label>
-            <div class="col-md-10">
-                <NumberInput TValue="double" Value="@((double)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, double>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
-                <ValidationMessage TValue="double" For="@(property.GetValueAccessExpression<TEntity, double>(Entity))" />
-            </div>
-        </div>
-    }
-    if (property.PropertyType == typeof(DateTime))
-    {
-        <div class="form-group row mb-3">
-            <label class="col-md-2 col-form-label">@property.Name</label>
-            <div class="col-md-10">
-                <DateInput TValue="DateTime" Value="@((DateTime)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, DateTime>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
-                <ValidationMessage TValue="DateTime" For="@(property.GetValueAccessExpression<TEntity, DateTime>(Entity))" />
-            </div>
-        </div>
-    }
-    if (property.PropertyType == typeof(string))
-    {
-        <div class="form-group row mb-3">
-            <label class="col-md-2 col-form-label">@property.Name</label>
-            <div class="col-md-10">
-                <TextInput Value="@((string)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, string>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
-                <ValidationMessage TValue="string" For="@(property.GetValueAccessExpression<TEntity, string>(Entity))" />
-            </div>
-        </div>
-    }
-    if (property.PropertyType.IsEnum)
-    {
-        <DynamicComponent Type="typeof(EnumPropertyEditorComponent<,>).MakeGenericType(typeof(TEntity), property.PropertyType)"
-                          Parameters="@(new Dictionary<string,object>{
-                                                                                          {nameof(EnumPropertyEditorComponent<object,object>.Entity), Entity},
-                                                                                          {nameof(EnumPropertyEditorComponent<object,object>.PropertyName), property.Name}
-                                                                        })" />
-    }
-    if (ServiceProvider.GetRequiredService<TContext>().IsNavigation<TEntity>(property))
-    {
-        <div class="form-group row mb-3">
-            <label class="col-md-2 col-form-label">@property.Name</label>
-            <div class="col-md-10 container">
-                <div class="row">
-                    <div class="col-sm w-75" type="text" readonly>@property.GetValue(Entity)?.ToString()</div>
-                    <Button class="col-sm w-25" Color="ButtonColor.Primary">Select</Button>
+        if (property.PropertyType == typeof(bool))
+        {
+            <div class="form-group row mb-3">
+                <label class="col-md-2 col-form-label">@property.Name</label>
+                <div class="col-md-10">
+                    <CheckboxInput TValue="bool" Value="@((bool)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, bool>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
+                    <ValidationMessage TValue="bool" For="@(property.GetValueAccessExpression<TEntity, bool>(Entity))" />
                 </div>
             </div>
-        </div>
+        }
+        if (property.PropertyType == typeof(int))
+        {
+            <div class="form-group row mb-3">
+                <label class="col-md-2 col-form-label">@property.Name</label>
+                <div class="col-md-10">
+                    <NumberInput TValue="int" Value="@((int)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, int>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
+                    <ValidationMessage TValue="int" For="@(property.GetValueAccessExpression<TEntity, int>(Entity))" />
+                </div>
+            </div>
+        }
+        if (property.PropertyType == typeof(uint))
+        {
+            <div class="form-group row mb-3">
+                <label class="col-md-2 col-form-label">@property.Name</label>
+                <div class="col-md-10">
+                    <NumberInput TValue="uint" Value="@((uint)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, uint>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
+                    <ValidationMessage TValue="uint" For="@(property.GetValueAccessExpression<TEntity, uint>(Entity))" />
+                </div>
+            </div>
+        }
+        if (property.PropertyType == typeof(short))
+        {
+            <div class="form-group row mb-3">
+                <label class="col-md-2 col-form-label">@property.Name</label>
+                <div class="col-md-10">
+                    <NumberInput TValue="short" Value="@((short)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, short>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
+                    <ValidationMessage TValue="short" For="@(property.GetValueAccessExpression<TEntity, short>(Entity))" />
+                </div>
+            </div>
+        }
+        if (property.PropertyType == typeof(ushort))
+        {
+            <div class="form-group row mb-3">
+                <label class="col-md-2 col-form-label">@property.Name</label>
+                <div class="col-md-10">
+                    <NumberInput TValue="ushort" Value="@((ushort)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, ushort>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
+                    <ValidationMessage TValue="ushort" For="@(property.GetValueAccessExpression<TEntity, ushort>(Entity))" />
+                </div>
+            </div>
+        }
+        if (property.PropertyType == typeof(long))
+        {
+            <div class="form-group row mb-3">
+                <label class="col-md-2 col-form-label">@property.Name</label>
+                <div class="col-md-10">
+                    <NumberInput TValue="long" Value="@((long)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, long>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
+                    <ValidationMessage TValue="long" For="@(property.GetValueAccessExpression<TEntity, long>(Entity))" />
+                </div>
+            </div>
+        }
+        if (property.PropertyType == typeof(ulong))
+        {
+            <div class="form-group row mb-3">
+                <label class="col-md-2 col-form-label">@property.Name</label>
+                <div class="col-md-10">
+                    <NumberInput TValue="ulong" Value="@((ulong)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, ulong>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
+                    <ValidationMessage TValue="ulong" For="@(property.GetValueAccessExpression<TEntity, ulong>(Entity))" />
+                </div>
+            </div>
+        }
+        if (property.PropertyType == typeof(float))
+        {
+            <div class="form-group row mb-3">
+                <label class="col-md-2 col-form-label">@property.Name</label>
+                <div class="col-md-10">
+                    <NumberInput TValue="float" Value="@((float)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, float>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
+                    <ValidationMessage TValue="float" For="@(property.GetValueAccessExpression<TEntity, float>(Entity))" />
+                </div>
+            </div>
+        }
+        if (property.PropertyType == typeof(double))
+        {
+            <div class="form-group row mb-3">
+                <label class="col-md-2 col-form-label">@property.Name</label>
+                <div class="col-md-10">
+                    <NumberInput TValue="double" Value="@((double)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, double>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
+                    <ValidationMessage TValue="double" For="@(property.GetValueAccessExpression<TEntity, double>(Entity))" />
+                </div>
+            </div>
+        }
+        if (property.PropertyType == typeof(DateTime))
+        {
+            <div class="form-group row mb-3">
+                <label class="col-md-2 col-form-label">@property.Name</label>
+                <div class="col-md-10">
+                    <DateInput TValue="DateTime" Value="@((DateTime)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, DateTime>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
+                    <ValidationMessage TValue="DateTime" For="@(property.GetValueAccessExpression<TEntity, DateTime>(Entity))" />
+                </div>
+            </div>
+        }
+        if (property.PropertyType == typeof(string))
+        {
+            <div class="form-group row mb-3">
+                <label class="col-md-2 col-form-label">@property.Name</label>
+                <div class="col-md-10">
+                    <TextInput Value="@((string)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, string>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" />
+                    <ValidationMessage TValue="string" For="@(property.GetValueAccessExpression<TEntity, string>(Entity))" />
+                </div>
+            </div>
+        }
+        if (property.PropertyType.IsEnum)
+        {
+            <DynamicComponent Type="typeof(EnumPropertyEditorComponent<,>).MakeGenericType(typeof(TEntity), property.PropertyType)"
+                              Parameters="@(new Dictionary<string,object>{
+                                                                                                                              {nameof(EnumPropertyEditorComponent<object,object>.Entity), Entity},
+                                                                                                                              {nameof(EnumPropertyEditorComponent<object,object>.PropertyName), property.Name}
+                                                                                                            })" />
     }
+        if (ServiceProvider.GetRequiredService<TContext>().IsNavigation<TEntity>(property))
+        {
+            <div class="form-group row mb-3">
+                <label class="col-md-2 col-form-label">@property.Name</label>
+                <div class="col-md-10 container">
+                    <div class="row">
+                        <div class="col-sm" type="text" readonly>@property.GetValue(Entity)?.ToString()</div>
+                        <Button class="col-sm   col-lg-3" Color="ButtonColor.Primary" @onclick="_ => InitiateNavigationSelection(property)">Select</Button>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+}
+else
+{
+    <Button @onclick="_ => SelectingNavigationProperty = null" Color="ButtonColor.Secondary">Cancel selection</Button>
+    <DynamicComponent Type="typeof(NavigationPropertyEditorComponent<,,>).MakeGenericType(typeof(TEntity), SelectingNavigationProperty.PropertyType, typeof(TContext))"
+                      Parameters="@(new Dictionary<string, object>
+                                        {
+                                            { nameof(NavigationPropertyEditorComponent<object, object, DbContext>.NavigationPropertyName), SelectingNavigationProperty.Name },
+                                            { nameof(NavigationPropertyEditorComponent<object, object, DbContext>.PropertySelected), EventCallback.Factory.Create(this, SelectionComplete)}
+                                                          })" />
 }
 @code {
     [Parameter]
@@ -143,5 +160,20 @@
     {
         get;
         set;
+    }
+
+    public PropertyInfo? SelectingNavigationProperty { get; set; }
+
+    private void InitiateNavigationSelection(PropertyInfo property)
+    {
+        SelectingNavigationProperty = property;
+        StateHasChanged();
+    }
+
+    private void SelectionComplete(object type)
+    {
+        SelectingNavigationProperty?.SetValue(Entity, type);
+        SelectingNavigationProperty = null;
+        StateHasChanged();
     }
 }

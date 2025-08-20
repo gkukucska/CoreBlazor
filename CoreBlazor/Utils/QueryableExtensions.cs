@@ -1,4 +1,5 @@
 ﻿using BlazorBootstrap;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -28,6 +29,14 @@ namespace CoreBlazor.Utils
 
         public static IQueryable<TEntity> WithSorting<TEntity>(this IQueryable<TEntity> query, IEnumerable<SortingItem<TEntity>> sortingCollection)
             => sortingCollection.Aggregate(query, static (current, sorting) => current.WithSorting(sorting));
+
+        public async static Task<GridDataProviderResult<TEntity>> ToGridResultsAsync<TEntity>(this IQueryable<TEntity> entities, GridDataProviderRequest<TEntity> request) where TEntity : class
+            => new GridDataProviderResult<TEntity>
+            {
+                Data = await entities.WithPagination(request).ToListAsync(),
+                TotalCount = await entities.CountAsync(),
+                PageNumber = request.PageNumber
+            };
 
         #endregion
 

@@ -1,0 +1,64 @@
+﻿@using CoreBlazor.Utils
+@using Microsoft.EntityFrameworkCore
+@using System.Reflection
+@using Microsoft.Extensions.DependencyInjection
+@typeparam TEntity where TEntity: class
+@typeparam TProperty where TProperty: class
+@typeparam TContext where TContext : DbContext
+@inject IServiceProvider ServiceProvider
+
+<Grid TItem="TProperty" DataProvider="GetEntities"
+      Class="table table-hover table-bordered table-striped"
+      AllowFiltering="true"
+      AllowSorting="true"
+      AllowPaging="true"
+      Responsive="true"
+      AllowRowClick="false"
+      PageSize="20">
+    <GridColumns>
+        <GridColumn TItem="TProperty" Filterable="false" Sortable="false">
+            <Button @onclick="_=> SelectButtonClicked(context)" Color="ButtonColor.Primary">
+                Select
+            </Button>
+        </GridColumn>
+        @foreach (var prop in typeof(TProperty).GetProperties().Where(x => x.IsDisplayable()))
+        {
+            <GridColumn TItem="TProperty" HeaderText="@prop.Name" PropertyName="@prop.Name" Filterable="@IsFilterable(prop)" Sortable="@IsSortable(prop)" SortString="@prop.Name" SortKeySelector="prop.GetMemberAccessExpressionWithConversion<TProperty, IComparable>()">
+                @prop.GetValue(@context)
+            </GridColumn>
+        }
+    </GridColumns>
+</Grid>
+@code {
+    [Parameter]
+    public string NavigationPropertyName { get; set; }
+
+    private async Task<GridDataProviderResult<TProperty>> GetEntities(GridDataProviderRequest<TProperty> request)
+    => await ServiceProvider.GetRequiredService<TContext>()
+                            .ApplyTo<TProperty>(request);
+
+    private bool IsFilterable(PropertyInfo prop)
+    {
+        var context = ServiceProvider.GetRequiredService<TContext>();
+        return !context.IsNavigation<TEntity>(prop);
+    }
+
+    private bool IsSortable(PropertyInfo prop)
+    {
+        return typeof(IComparable).IsAssignableFrom(prop.PropertyType);
+    }
+
+    [Parameter] public EventCallback PropertySelected { get; set; }
+
+    private void OnClick(Type type)
+    {
+        PropertySelected.InvokeAsync(type);
+    }
+
+    private void SelectButtonClicked(TProperty entity)
+    {
+        var context = ServiceProvider.GetRequiredService<TContext>();
+        var primaryKey = context.GetPrimaryKey<TEntity>();
+        PropertySelected.InvokeAsync(entity);
+    }
+}
