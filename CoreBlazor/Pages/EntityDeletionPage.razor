@@ -1,0 +1,28 @@
+﻿@page "/DbContext/{DbContext}/DbSet/{DbSet}/Delete/{EntityId}"
+@using CoreBlazor.Components
+@inject IEnumerable<DiscoveredContext> DiscoveredContexts
+
+<DynamicComponent Type="@ComponentType" Parameters="@Parameters" />
+
+@code {
+    [Parameter]
+    public string DbContext { get; set; }
+    [Parameter]
+    public string DbSet { get; set; }
+    [Parameter]
+    public string EntityId { get; set; }
+    public Type ComponentType { get; set; }
+    public IDictionary<string, object> Parameters { get; set; } = new Dictionary<string, object>();
+
+    protected override void OnParametersSet()
+    {
+        var discoveredContext = DiscoveredContexts.Single(x => x.ContextType.Name == DbContext);
+        var discoveredSet = discoveredContext.Sets.Single(x => x.EntityType.Name == DbSet);
+        ComponentType = typeof(EntityDeletionComponent<,>).MakeGenericType(discoveredContext.ContextType, discoveredSet.EntityType);
+        Parameters = new Dictionary<string, object>
+        {
+            { "EntityId", EntityId }
+        };
+    }
+
+}

@@ -5,17 +5,16 @@
 @typeparam TEntity where TEntity : class
 @inject IServiceProvider ServiceProvider
 @inject NavigationManager NavigationManager
-<EditForm Model="Entity" OnValidSubmit="OnSaveChanges">
-    <DataAnnotationsValidator />
-    <PropertyEditorComponent TContext="TContext" TEntity="TEntity" Entity="@Entity" />
-    <Button Color="ButtonColor.Primary" Type="ButtonType.Submit" Class="m-1">Save Changes</Button>
-    <Button Color="ButtonColor.Danger" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Delete/{EntityId}")" Class="m-1">
-        <Icon Name="IconName.ExclamationDiamondFill" />
-        Delete
+<DbContextInfoComponent TContext="TContext" />
+<EditForm Model="Entity" OnSubmit="OnSaveChanges">
+    <PropertyEditorComponent TContext="TContext" TEntity="TEntity" Entity="Entity" IsDisabled="true" />
+    <Button Color="ButtonColor.Danger" Type="ButtonType.Submit" Class="m-1">
+        <Icon Name="IconName.ExclamationDiamondFill"/>
+        Confirm deletion
     </Button>
-    <Button Color="ButtonColor.Link" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}")" Class="m-1">Go back</Button>
+    <Button Color="ButtonColor.Link" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Edit/{EntityId}")" Class="m-1">Go back</Button>
 </EditForm>
-@code{
+@code {
     [Parameter]
     public string EntityId { get; set; }
 
@@ -27,8 +26,8 @@
         var set = context.DbSetWithDisplayableNavigations<TEntity>();
         var primarykey = context.Model.FindEntityType(typeof(TEntity))!.FindPrimaryKey().Properties.Single().PropertyInfo;
         ParameterExpression parameterExpression = Expression.Parameter(typeof(TEntity));
-        var property= Expression.Property(parameterExpression, primarykey.Name);
-        var filter = ExpressionExtensions.GetExpressionDelegate<TEntity>(parameterExpression,new FilterItem(primarykey.Name,EntityId,FilterOperator.Equals, default));
+        var property = Expression.Property(parameterExpression, primarykey.Name);
+        var filter = ExpressionExtensions.GetExpressionDelegate<TEntity>(parameterExpression, new FilterItem(primarykey.Name, EntityId, FilterOperator.Equals, default));
         Entity = set.Single(filter);
         base.OnParametersSet();
     }
@@ -39,8 +38,7 @@
         {
             context.Attach(navigation.PropertyInfo.GetValue(Entity));
         }
-        context.Attach(Entity);
-        context.Update(Entity);
+        context.Remove(Entity);
         await context.SaveChangesAsync();
         NavigationManager.NavigateTo($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}");
     }
