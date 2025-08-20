@@ -4,6 +4,7 @@
 @typeparam TContext where TContext : Microsoft.EntityFrameworkCore.DbContext
 @typeparam TEntity where TEntity : class
 @inject IServiceProvider ServiceProvider
+@inject NavigationManager NavigationManager
 <EditForm Model ="Entity" OnValidSubmit="OnSaveChanges">
     <PropertyEditorComponent TContext="TContext" TEntity="TEntity" Entity="@Entity" />
     <Button Color="ButtonColor.Primary" Type="ButtonType.Submit" Class="m-1">Save Changes</Button>
@@ -23,11 +24,18 @@
         ParameterExpression parameterExpression = Expression.Parameter(typeof(TEntity));
         var property= Expression.Property(parameterExpression, primarykey.Name);
         var filter = ExpressionExtensions.GetExpressionDelegate<TEntity>(parameterExpression,new FilterItem(primarykey.Name,EntityId,FilterOperator.Equals, default));
-        // var lambda = Expression.Lambda<Func<TEntity, bool>>(filter, parameterExpression);
         Entity = set.Single(filter);
     }
-    private void OnSaveChanges(EditContext args)
+    private async Task OnSaveChanges(EditContext args)
     {
-        
+        var context = ServiceProvider.GetRequiredService<TContext>();
+        foreach (var navigation in context.GetNavigations<TEntity>())
+        {
+            context.Attach(navigation.PropertyInfo.GetValue(Entity));
+        }
+        context.Attach(Entity);
+        context.Update(Entity);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}");
     }
 }
