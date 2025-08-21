@@ -5,12 +5,13 @@
 @using System.Reflection
 @typeparam TContext where TContext : DbContext
 @typeparam TEntity where TEntity : class
+@implements IAsyncDisposable
 @inject IDbContextFactory<TContext> ContextFactory
 
 @if (SelectingNavigationProperty is null)
 {
 
-    @foreach (var property in typeof(TEntity).GetProperties().Where(property => property.IsDisplayable()))
+    @foreach (var property in typeof(TEntity).GetProperties().Where(property => property.IsDisplayable() && !_context.IsGeneratedPrimaryKey<TEntity>(property)))
     {
         if (property.PropertyType == typeof(bool))
         {
@@ -136,10 +137,10 @@
         {
             <DynamicComponent Type="typeof(EnumPropertyEditorComponent<,>).MakeGenericType(typeof(TEntity), property.PropertyType)"
                               Parameters="@(new Dictionary<string,object>{
-                                                                                                                                                                  {nameof(EnumPropertyEditorComponent<object,object>.Entity), Entity},
-                                                                                                                                                                  {nameof(EnumPropertyEditorComponent<object,object>.PropertyName), property.Name},
-                                                                                                                                                                  {nameof(EnumPropertyEditorComponent<object,object>.IsDisabled), IsDisabled}
-                                                                                                                              })" />
+                                                                            {nameof(EnumPropertyEditorComponent<object,object>.Entity), Entity},
+                                                                            {nameof(EnumPropertyEditorComponent<object,object>.PropertyName), property.Name},
+                                                                            {nameof(EnumPropertyEditorComponent<object,object>.IsDisabled), IsDisabled}
+                                                                         })" />
     }
         if (_navigations.Any(navigation => navigation.PropertyInfo.Name == property.Name && navigation.PropertyInfo.PropertyType == property.PropertyType))
         {
@@ -170,7 +171,7 @@ else
                                                                             })" />
 }
 @code {
-
+    private TContext _context;
     private List<INavigation> _navigations;
 
     [Parameter]
@@ -187,8 +188,8 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        await using var context = await ContextFactory.CreateDbContextAsync();
-        _navigations = context.GetNavigations<TEntity>().ToList();
+        _context = await ContextFactory.CreateDbContextAsync();
+        _navigations = _context.GetNavigations<TEntity>().ToList();
     }
 
     private void InitiateNavigationSelection(PropertyInfo property)
@@ -196,6 +197,9 @@ else
         SelectingNavigationProperty = property;
         StateHasChanged();
     }
+
+    public async ValueTask DisposeAsync()
+     => await _context.DisposeAsync();
 
     private void SelectionComplete(object type)
     {
