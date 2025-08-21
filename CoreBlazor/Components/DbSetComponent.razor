@@ -1,5 +1,6 @@
 ﻿@using System.Linq.Expressions
 @using System.Reflection
+@using CoreBlazor.Configuration
 @using CoreBlazor.Utils
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.DependencyInjection
@@ -7,7 +8,8 @@
 @typeparam TEntity where TEntity : class
 @implements IAsyncDisposable
 @inject IDbContextFactory<TContext> ContextFactory;
-@inject NavigationManager NavigationManager
+@inject NavigationManager NavigationManager;
+@inject CoreBlazorDbSetOptions<TEntity>? DbSetOptions;
 <Button Color="ButtonColor.Primary" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Create")">
     Add New Entity
 </Button>
@@ -21,10 +23,22 @@
       OnRowDoubleClick="@GoToEntityEditorPage"
       PageSize="20">
     <GridColumns>
-        @foreach (var prop in typeof(TEntity).GetProperties().Where(x => x.IsDisplayable()))
+        @foreach (var prop in typeof(TEntity).GetProperties().Where(x => x.IsDisplayable() &&
+                (!DbSetOptions?.HiddenProperties.Any(y => y.Name == x.Name && y.PropertyType == x.PropertyType) ?? true)))
         {
             <GridColumn TItem="TEntity" HeaderText="@prop.Name" PropertyName="@prop.Name" Filterable="@IsFilterable(prop)" Sortable="@IsSortable(prop)" SortString="@prop.Name" SortKeySelector="prop.GetMemberAccessExpressionWithConversion<TEntity, IComparable>()">
-                @prop.GetValue(@context)
+                @if (_context.IsNavigation<TEntity>(prop))
+                {
+                    <DynamicComponent Type="typeof(NavigationPropertyColumnViewerComponent<,>).MakeGenericType(typeof(TEntity), prop.PropertyType)"
+                                      Parameters="@(new Dictionary<string,object>{
+                                                                                          {nameof(NavigationPropertyColumnViewerComponent<object,object>.Entity), @context},
+                                                                                          {nameof(NavigationPropertyColumnViewerComponent<object,object>.PropertyName), prop.Name}
+                              })" />
+                        }
+                else
+                {
+                    @prop.GetValue(@context)
+                }
             </GridColumn>
         }
     </GridColumns>

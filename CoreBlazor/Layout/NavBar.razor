@@ -1,11 +1,12 @@
 @inject IEnumerable<DiscoveredContext> DiscoveredContexts
 @using BlazorBootstrap
+@using CoreBlazor.Configuration
 <Sidebar2 Title="CoreBlazor"
          BadgeText="1.0.0"
          DataProvider="SidebarDataProvider"
          WidthUnit="Unit.Px" />
 @code {
-    
+
     private IEnumerable<NavItem>? _navItems;
 
     private async Task<Sidebar2DataProviderResult> SidebarDataProvider(Sidebar2DataProviderRequest request)
@@ -19,9 +20,11 @@
     {
         foreach (var context in DiscoveredContexts ?? [])
         {
+            ConfigurationExtensions.DisplayTitles.TryGetValue(context.ContextType.Name, out var contextTitle);
+            contextTitle = contextTitle ?? context.ContextType.Name;
             yield return new NavItem()
             {
-                Text = context.ContextType.Name,
+                Text = contextTitle,
                 IconName = IconName.DatabaseFill,
                 Id = context.ContextType.Name
             };
@@ -36,10 +39,12 @@
 
             foreach (var set in context.Sets)
             {
-                
+
+                ConfigurationExtensions.DisplayTitles.TryGetValue(set.EntityType.Name, out var setTitle);
+                setTitle = setTitle ?? set.EntityType.Name;
                 yield return new NavItem()
                 {
-                    Text = set.EntityType.Name,
+                    Text = setTitle,
                     IconName = IconName.Table,
                     Id = context.ContextType.Name+ set.EntityType.Name,
                     Href = $"DbContext/{context.ContextType.Name}/DbSet/{set.EntityType.Name}",

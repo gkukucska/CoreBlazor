@@ -1,4 +1,5 @@
-﻿@using CoreBlazor.Utils
+﻿@using CoreBlazor.Configuration
+@using CoreBlazor.Utils
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.EntityFrameworkCore.Metadata
 @using Microsoft.Extensions.DependencyInjection
@@ -6,12 +7,14 @@
 @typeparam TContext where TContext : DbContext
 @typeparam TEntity where TEntity : class
 @implements IAsyncDisposable
+@inject CoreBlazorDbSetOptions<TEntity>? DbSetOptions;
 @inject IDbContextFactory<TContext> ContextFactory
 
 @if (SelectingNavigationProperty is null)
 {
 
-    @foreach (var property in typeof(TEntity).GetProperties().Where(property => property.IsDisplayable() && !_context.IsGeneratedPrimaryKey<TEntity>(property)))
+    @foreach (var property in typeof(TEntity).GetProperties().Where(property => property.IsDisplayable() &&
+                    (!DbSetOptions?.HiddenProperties.Any(y => y.Name == property.Name && y.PropertyType == property.PropertyType) ?? true) && !_context.IsGeneratedPrimaryKey<TEntity>(property)))
     {
         if (property.PropertyType == typeof(bool))
         {
@@ -148,7 +151,13 @@
                 <label class="col-md-2 col-form-label">@property.Name</label>
                 <div class="col-md-10 container">
                     <div class="row">
-                        <div class="col-sm" type="text" readonly>@property.GetValue(Entity)?.ToString()</div>
+                        <div class="col-sm" type="text" readonly>
+                            <DynamicComponent Type="typeof(NavigationPropertyColumnViewerComponent<,>).MakeGenericType(typeof(TEntity), property.PropertyType)"
+                                              Parameters="@(new Dictionary<string,object>{
+                                                                                                                            {nameof(NavigationPropertyColumnViewerComponent<object,object>.Entity), Entity},
+                                                                                                                            {nameof(NavigationPropertyColumnViewerComponent<object,object>.PropertyName), property.Name}
+                                                                })" />
+            </div>
                         @if (!IsDisabled)
                         {
                             <Button class="col-sm   col-lg-3" Color="ButtonColor.Primary" @onclick="_ => InitiateNavigationSelection(property)">Select</Button>

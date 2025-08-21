@@ -60,4 +60,10 @@ public static class DbContextExtensions
                                   .WithFiltering(request.Filters)
                                   .WithSorting(request.Sorting)
                                   .ToGridResultsAsync(request);
+
+    public static IEnumerable<PropertyInfo> GetDbSets(this Type contextType)
+    {
+        return contextType.GetProperties()
+            .Where(p => p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>));
+    }
 }

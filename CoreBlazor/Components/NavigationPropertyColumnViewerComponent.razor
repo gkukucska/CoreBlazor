@@ -1,0 +1,23 @@
+﻿@using System.Reflection
+@using CoreBlazor.Configuration
+@typeparam TEntity where TEntity : class
+@typeparam TProperty where TProperty : class
+@inject CoreBlazorDbSetOptions<TProperty>? DbSetOptions
+
+@(DbSetOptions?.StringDisplay(_propertyInfo.GetValue(Entity) as TProperty) ?? _propertyInfo.GetValue(Entity))
+
+@code {
+    private PropertyInfo _propertyInfo;
+
+    [Parameter]
+    public TEntity Entity{ get; set; }
+
+    [Parameter]
+    public string PropertyName { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        _propertyInfo = typeof(TEntity).GetProperty(PropertyName, typeof(TProperty));
+        base.OnParametersSet();
+    }
+}

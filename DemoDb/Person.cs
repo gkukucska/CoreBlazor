@@ -15,6 +15,6 @@ public class Person
     public Gender Gender { get; set; }
 
     public int JobId { get; set; }
+
     public JobEntity? Job { get; set; } 
-    public override string ToString() => Name;
 }

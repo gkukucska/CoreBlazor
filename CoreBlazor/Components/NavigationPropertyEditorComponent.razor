@@ -1,12 +1,14 @@
-﻿@using CoreBlazor.Utils
+﻿@using CoreBlazor.Configuration
+@using CoreBlazor.Utils
 @using Microsoft.EntityFrameworkCore
 @using System.Reflection
 @using Microsoft.Extensions.DependencyInjection
-@typeparam TEntity where TEntity: class
-@typeparam TProperty where TProperty: class
+@typeparam TEntity where TEntity : class
+@typeparam TProperty where TProperty : class
 @typeparam TContext where TContext : DbContext
 @implements IAsyncDisposable
 @inject IDbContextFactory<TContext> ContextFactory
+@inject CoreBlazorDbSetOptions<TProperty>? DbSetOptions
 
 <Grid TItem="TProperty" DataProvider="GetEntities"
       Class="table table-hover table-bordered table-striped"
@@ -18,14 +20,26 @@
       PageSize="20">
     <GridColumns>
         <GridColumn TItem="TProperty" Filterable="false" Sortable="false">
-            <Button @onclick="_=> SelectButtonClicked(context)" Color="ButtonColor.Primary">
+            <Button @onclick="_ => SelectButtonClicked(context)" Color="ButtonColor.Primary">
                 Select
             </Button>
         </GridColumn>
-        @foreach (var prop in typeof(TProperty).GetProperties().Where(x => x.IsDisplayable()))
+        @foreach (var prop in typeof(TProperty).GetProperties().Where(x => x.IsDisplayable() &&
+                (!DbSetOptions?.HiddenProperties.Any(y => y.Name == x.Name && y.PropertyType == x.PropertyType) ?? true)))
         {
             <GridColumn TItem="TProperty" HeaderText="@prop.Name" PropertyName="@prop.Name" Filterable="@IsFilterable(prop)" Sortable="@IsSortable(prop)" SortString="@prop.Name" SortKeySelector="prop.GetMemberAccessExpressionWithConversion<TProperty, IComparable>()">
-                @prop.GetValue(@context)
+                @if (_context.IsNavigation<TEntity>(prop))
+                {
+                    <DynamicComponent Type="typeof(NavigationPropertyColumnViewerComponent<,>).MakeGenericType(typeof(TEntity), prop.PropertyType)"
+                                      Parameters="@(new Dictionary<string,object>{
+                                                                                                                        {nameof(NavigationPropertyColumnViewerComponent<object,object>.Entity), @context},
+                                                                                                                        {nameof(NavigationPropertyColumnViewerComponent<object,object>.PropertyName), prop.Name}
+                                                            })" />
+                }
+                else
+                {
+                    @prop.GetValue(@context)
+                }
             </GridColumn>
         }
     </GridColumns>
@@ -36,7 +50,7 @@
     [Parameter]
     public string NavigationPropertyName { get; set; }
 
-    [Parameter] 
+    [Parameter]
     public EventCallback PropertySelected { get; set; }
 
     protected override async Task OnParametersSetAsync()
@@ -58,7 +72,7 @@
         return typeof(IComparable).IsAssignableFrom(prop.PropertyType);
     }
 
-    public async ValueTask DisposeAsync() 
+    public async ValueTask DisposeAsync()
         => await _context.DisposeAsync();
 
     private void SelectButtonClicked(TProperty entity)
