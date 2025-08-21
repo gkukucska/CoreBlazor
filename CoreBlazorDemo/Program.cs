@@ -10,7 +10,7 @@ builder.Services.AddBlazorBootstrap()
     .AddDbContextFactory<DemoDbContext>()
     .AddCoreBlazor().ConfigureContext<DemoDbContext>(options =>
         options.WithTitle("Demo Db")
-               .ConfigureSet(context => context.Jobs, jobOptions => jobOptions.WithStringDisplay(job => $"{job.Name}, salary: {job.Salary}")
+               .ConfigureSet(context => context.Jobs, jobOptions => jobOptions.WithStringDisplay(job => $"{job?.Name}, salary: {job?.Salary}")
                                                                               .WithPropertyHidden(job=>job.Id)
                                                                               .WithTitle("Jobs"))
                .ConfigureSet(context => context.People, personOptions => personOptions.WithStringDisplay(person => person.Name)
