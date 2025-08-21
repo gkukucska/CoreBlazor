@@ -1,9 +1,10 @@
 ﻿@using CoreBlazor.Utils
+@using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.DependencyInjection
 @using System.Linq.Expressions
-@typeparam TContext where TContext : Microsoft.EntityFrameworkCore.DbContext
+@typeparam TContext where TContext : DbContext
 @typeparam TEntity where TEntity : class, new()
-@inject IServiceProvider ServiceProvider
+@inject IDbContextFactory<TContext> ContextFactory
 @inject NavigationManager NavigationManager
 <EditForm Model="Entity" OnValidSubmit="OnSaveChanges" @ref="@CreateForm">
     <DataAnnotationsValidator />
@@ -33,7 +34,7 @@
 
     private async Task OnSaveChanges(EditContext args)
     {
-        var context = ServiceProvider.GetRequiredService<TContext>();
+        await using var context = await ContextFactory.CreateDbContextAsync();
         foreach (var navigation in context.GetNavigations<TEntity>())
         {
             context.Attach(navigation.PropertyInfo.GetValue(Entity));

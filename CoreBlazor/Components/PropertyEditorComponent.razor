@@ -1,10 +1,11 @@
 ﻿@using CoreBlazor.Utils
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.EntityFrameworkCore.Metadata
 @using Microsoft.Extensions.DependencyInjection
 @using System.Reflection
-@typeparam TContext where TContext : Microsoft.EntityFrameworkCore.DbContext
+@typeparam TContext where TContext : DbContext
 @typeparam TEntity where TEntity : class
-@inject IServiceProvider ServiceProvider
+@inject IDbContextFactory<TContext> ContextFactory
 
 @if (SelectingNavigationProperty is null)
 {
@@ -130,7 +131,7 @@
                                                                                                                                                                   {nameof(EnumPropertyEditorComponent<object,object>.IsDisabled), IsDisabled}
                                                                                                                               })" />
     }
-        if (ServiceProvider.GetRequiredService<TContext>().IsNavigation<TEntity>(property))
+        if (_navigations.Any(navigation => navigation.PropertyInfo.Name == property.Name && navigation.PropertyInfo.PropertyType == property.PropertyType))
         {
             <div class="form-group row mb-3">
                 <label class="col-md-2 col-form-label">@property.Name</label>
@@ -159,6 +160,9 @@ else
                                                                             })" />
 }
 @code {
+
+    private List<INavigation> _navigations;
+
     [Parameter]
     public TEntity Entity
     {
@@ -170,6 +174,12 @@ else
     public bool IsDisabled { get; set; } = false;
 
     public PropertyInfo? SelectingNavigationProperty { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await using var context = await ContextFactory.CreateDbContextAsync();
+        _navigations = context.GetNavigations<TEntity>().ToList();
+    }
 
     private void InitiateNavigationSelection(PropertyInfo property)
     {

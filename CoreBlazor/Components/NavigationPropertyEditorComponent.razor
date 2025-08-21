@@ -5,7 +5,8 @@
 @typeparam TEntity where TEntity: class
 @typeparam TProperty where TProperty: class
 @typeparam TContext where TContext : DbContext
-@inject IServiceProvider ServiceProvider
+@implements IAsyncDisposable
+@inject IDbContextFactory<TContext> ContextFactory
 
 <Grid TItem="TProperty" DataProvider="GetEntities"
       Class="table table-hover table-bordered table-striped"
@@ -30,17 +31,26 @@
     </GridColumns>
 </Grid>
 @code {
+    private TContext _context;
+
     [Parameter]
     public string NavigationPropertyName { get; set; }
 
+    [Parameter] 
+    public EventCallback PropertySelected { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _context = await ContextFactory.CreateDbContextAsync();
+        await base.OnParametersSetAsync();
+    }
+
     private async Task<GridDataProviderResult<TProperty>> GetEntities(GridDataProviderRequest<TProperty> request)
-    => await ServiceProvider.GetRequiredService<TContext>()
-                            .ApplyTo<TProperty>(request);
+        => await _context.ApplyTo<TProperty>(request);
 
     private bool IsFilterable(PropertyInfo prop)
     {
-        var context = ServiceProvider.GetRequiredService<TContext>();
-        return !context.IsNavigation<TEntity>(prop);
+        return !_context.IsNavigation<TEntity>(prop);
     }
 
     private bool IsSortable(PropertyInfo prop)
@@ -48,17 +58,11 @@
         return typeof(IComparable).IsAssignableFrom(prop.PropertyType);
     }
 
-    [Parameter] public EventCallback PropertySelected { get; set; }
-
-    private void OnClick(Type type)
-    {
-        PropertySelected.InvokeAsync(type);
-    }
+    public async ValueTask DisposeAsync() 
+        => await _context.DisposeAsync();
 
     private void SelectButtonClicked(TProperty entity)
     {
-        var context = ServiceProvider.GetRequiredService<TContext>();
-        var primaryKey = context.GetPrimaryKey<TEntity>();
         PropertySelected.InvokeAsync(entity);
     }
 }

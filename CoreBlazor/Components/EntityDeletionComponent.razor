@@ -1,9 +1,11 @@
 ﻿@using CoreBlazor.Utils
+@using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.DependencyInjection
 @using System.Linq.Expressions
-@typeparam TContext where TContext : Microsoft.EntityFrameworkCore.DbContext
+@typeparam TContext where TContext : DbContext
 @typeparam TEntity where TEntity : class
-@inject IServiceProvider ServiceProvider
+@implements IAsyncDisposable
+@inject IDbContextFactory<TContext> ContextFactory
 @inject NavigationManager NavigationManager
 <DbContextInfoComponent TContext="TContext" />
 <EditForm Model="Entity" OnSubmit="OnSaveChanges">
@@ -15,31 +17,36 @@
     <Button Color="ButtonColor.Link" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Edit/{EntityId}")" Class="m-1">Go back</Button>
 </EditForm>
 @code {
+    private TContext _context;
+
     [Parameter]
     public string EntityId { get; set; }
 
     public TEntity Entity { get; set; }
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        var context = ServiceProvider.GetRequiredService<TContext>();
-        var set = context.DbSetWithDisplayableNavigations<TEntity>();
-        var primarykey = context.Model.FindEntityType(typeof(TEntity))!.FindPrimaryKey().Properties.Single().PropertyInfo;
+        _context = await ContextFactory.CreateDbContextAsync();
+        var set = _context.DbSetWithDisplayableNavigations<TEntity>();
+        var primarykey = _context.Model.FindEntityType(typeof(TEntity))!.FindPrimaryKey().Properties.Single().PropertyInfo;
         ParameterExpression parameterExpression = Expression.Parameter(typeof(TEntity));
         var property = Expression.Property(parameterExpression, primarykey.Name);
         var filter = ExpressionExtensions.GetExpressionDelegate<TEntity>(parameterExpression, new FilterItem(primarykey.Name, EntityId, FilterOperator.Equals, default));
-        Entity = set.Single(filter);
-        base.OnParametersSet();
+        Entity = await set.SingleAsync(filter);
+        await base.OnParametersSetAsync();
     }
+
+    public async ValueTask DisposeAsync()
+        => await _context.DisposeAsync();
+
     private async Task OnSaveChanges(EditContext args)
     {
-        var context = ServiceProvider.GetRequiredService<TContext>();
-        foreach (var navigation in context.GetNavigations<TEntity>())
+        foreach (var navigation in _context.GetNavigations<TEntity>())
         {
-            context.Attach(navigation.PropertyInfo.GetValue(Entity));
+            _context.Attach(navigation.PropertyInfo.GetValue(Entity));
         }
-        context.Remove(Entity);
-        await context.SaveChangesAsync();
+        _context.Remove(Entity);
+        await _context.SaveChangesAsync();
         NavigationManager.NavigateTo($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}");
     }
 }

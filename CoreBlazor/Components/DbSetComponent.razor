@@ -5,7 +5,8 @@
 @using Microsoft.Extensions.DependencyInjection
 @typeparam TContext where TContext : Microsoft.EntityFrameworkCore.DbContext
 @typeparam TEntity where TEntity : class
-@inject IServiceProvider ServiceProvider;
+@implements IAsyncDisposable
+@inject IDbContextFactory<TContext> ContextFactory;
 @inject NavigationManager NavigationManager
 <Button Color="ButtonColor.Primary" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Create")">
     Add New Entity
@@ -30,14 +31,23 @@
 </Grid>
 
 @code {
-    private async Task<GridDataProviderResult<TEntity>> GetEntities(GridDataProviderRequest<TEntity> request) 
-    => await ServiceProvider.GetRequiredService<TContext>()
-                            .ApplyTo<TEntity>(request)
-                            .ConfigureAwait(false);
+
+    private TContext _context;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _context = await ContextFactory.CreateDbContextAsync();
+        await base.OnParametersSetAsync();
+    }
+
+
+    private async Task<GridDataProviderResult<TEntity>> GetEntities(GridDataProviderRequest<TEntity> request)
+    => await _context.ApplyTo<TEntity>(request)
+                     .ConfigureAwait(false);
 
     private bool IsFilterable(PropertyInfo prop)
     {
-        var context = ServiceProvider.GetRequiredService<TContext>();
+        var context = ContextFactory.CreateDbContext();
         return !context.IsNavigation<TEntity>(prop);
     }
 
@@ -46,11 +56,12 @@
         return typeof(IComparable).IsAssignableFrom(prop.PropertyType);
     }
 
+    public async ValueTask DisposeAsync()
+        => await _context.DisposeAsync();
 
     private Task GoToEntityEditorPage(GridRowEventArgs<TEntity> args)
     {
-        var context = ServiceProvider.GetRequiredService<TContext>();
-        var primaryKey = context.GetPrimaryKey<TEntity>();
+        var primaryKey = _context.GetPrimaryKey<TEntity>();
         NavigationManager.NavigateTo($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Edit/{primaryKey.PropertyInfo!.GetValue(args.Item)}");
         return Task.CompletedTask;
     }

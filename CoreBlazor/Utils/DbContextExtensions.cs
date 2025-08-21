@@ -20,12 +20,12 @@ public static class DbContextExtensions
     public static IProperty GetPrimaryKey<TEntity>(this DbContext context) where TEntity : class
     {
         var entityType = context.Model.FindEntityType(typeof(TEntity));
-        if (entityType == null)
+        if (entityType is null)
             throw new InvalidOperationException($"Entity type {typeof(TEntity).Name} not found in the model.");
         var primaryKey = entityType.FindPrimaryKey();
-        if (primaryKey == null || primaryKey.Properties.Count == 0)
+        if (primaryKey is null or {Properties.Count: 0 })
             throw new InvalidOperationException($"Primary key for entity type {typeof(TEntity).Name} not found.");
-        return primaryKey.Properties[0] ?? throw new InvalidOperationException($"Primary key property for entity type {typeof(TEntity).Name} not found.");
+        return primaryKey.Properties[0];
     }
 
     public async static Task<GridDataProviderResult<TEntity>> ApplyTo<TEntity>(this DbContext context, GridDataProviderRequest<TEntity> request) where TEntity : class

@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddBlazorBootstrap()
-    .AddDbContext<DemoDbContext>()
+    .AddDbContextFactory<DemoDbContext>()
     .AddCoreBlazor()
     .AddRazorComponents()
     .AddInteractiveServerComponents();

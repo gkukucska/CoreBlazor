@@ -5,7 +5,8 @@ namespace DemoDb;
 public class Person
 {
     public Guid Id { get; set; }
-    [Required] 
+    [Required]
+    [MaxLength(200)]
     public string Name { get; set; }
 
     [Required]
