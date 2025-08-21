@@ -112,6 +112,16 @@
                 </div>
             </div>
         }
+        if (property.PropertyType == typeof(DateOnly))
+        {
+            <div class="form-group row mb-3">
+                <label class="col-md-2 col-form-label">@property.Name</label>
+                <div class="col-md-10">
+                    <DateInput TValue="DateOnly" Value="@((DateOnly)property.GetValue(Entity)!)" ValueExpression="property.GetValueAccessExpression<TEntity, DateOnly>(Entity)" ValueChanged="@(value => property.SetValue(Entity, value))" disabled="@IsDisabled" />
+                    <ValidationMessage TValue="DateOnly" For="@(property.GetValueAccessExpression<TEntity, DateOnly>(Entity))" />
+                </div>
+            </div>
+        }
         if (property.PropertyType == typeof(string))
         {
             <div class="form-group row mb-3">

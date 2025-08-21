@@ -10,7 +10,7 @@ public class Person
     public string Name { get; set; }
 
     [Required]
-    public DateTime BornAt { get; set; }
+    public DateOnly BornAt { get; set; }
     
     public Gender Gender { get; set; }
 

@@ -38,7 +38,7 @@ public class DemoDbContext : DbContext
             .RuleFor(p => p.Id, f => Guid.NewGuid())
             .RuleFor(p => p.Name, f => f.Name.FullName())
             .RuleFor(p => p.Gender, f => f.PickRandom<Gender>())
-            .RuleFor(p => p.BornAt, f => f.Date.Past(30))
+            .RuleFor(p => p.BornAt, f => f.Date.PastDateOnly(30))
             .RuleFor(p => p.JobId, f => f.PickRandom(jobs.Select(j => j.Id)));
         var people = personFaker.Generate(50_000);
         modelBuilder.Entity<Person>().HasData(people);
