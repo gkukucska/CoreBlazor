@@ -2,8 +2,8 @@
 
 namespace CoreBlazor.Configuration
 {
-    public class CoreBlazorDbContextOptions<T> where T: DbContext
+    public class CoreBlazorDbContextOptions<TContext> where TContext: DbContext
     {
-        public string DisplayTitle { get; set; } = typeof(T).Name;
+        public string DisplayTitle { get; set; } = typeof(TContext).Name;
     }
 }

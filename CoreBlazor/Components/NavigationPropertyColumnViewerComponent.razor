@@ -1,8 +1,10 @@
 ﻿@using System.Reflection
 @using CoreBlazor.Configuration
+@using Microsoft.EntityFrameworkCore
+@typeparam TContext where TContext : DbContext
 @typeparam TEntity where TEntity : class
 @typeparam TProperty where TProperty : class
-@inject CoreBlazorDbSetOptions<TProperty>? DbSetOptions
+@inject CoreBlazorDbSetOptions<TContext,TProperty>? DbSetOptions
 
 @(DbSetOptions?.StringDisplay(_propertyInfo.GetValue(Entity) as TProperty) ?? _propertyInfo.GetValue(Entity))
 

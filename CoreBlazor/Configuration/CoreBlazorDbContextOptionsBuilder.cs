@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreBlazor.Configuration;
 
-public class CoreBlazorDbContextOptionsBuilder<TContext> where TContext : DbContext
+public class CoreBlazorDbContextOptionsBuilder<TContext> where TContext : DbContext 
 {
     public CoreBlazorDbContextOptionsBuilder(IServiceCollection services, CoreBlazorOptionsBuilder coreBlazorOptionsBuilder)
     {

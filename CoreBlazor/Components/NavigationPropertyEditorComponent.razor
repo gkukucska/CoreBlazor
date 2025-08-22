@@ -8,7 +8,7 @@
 @typeparam TContext where TContext : DbContext
 @implements IAsyncDisposable
 @inject IDbContextFactory<TContext> ContextFactory
-@inject CoreBlazorDbSetOptions<TProperty>? DbSetOptions
+@inject CoreBlazorDbSetOptions<TContext,TProperty>? DbSetOptions
 
 <Grid TItem="TProperty" DataProvider="GetEntities"
       Class="table table-hover table-bordered table-striped"
@@ -30,10 +30,10 @@
             <GridColumn TItem="TProperty" HeaderText="@prop.Name" PropertyName="@prop.Name" Filterable="@IsFilterable(prop)" Sortable="@IsSortable(prop)" SortString="@prop.Name" SortKeySelector="prop.GetMemberAccessExpressionWithConversion<TProperty, IComparable>()">
                 @if (_context.IsNavigation<TEntity>(prop))
                 {
-                    <DynamicComponent Type="typeof(NavigationPropertyColumnViewerComponent<,>).MakeGenericType(typeof(TEntity), prop.PropertyType)"
+                    <DynamicComponent Type="typeof(NavigationPropertyColumnViewerComponent<,,>).MakeGenericType(typeof(TContext),typeof(TEntity), prop.PropertyType)"
                                       Parameters="@(new Dictionary<string,object>{
-                                                                                                                        {nameof(NavigationPropertyColumnViewerComponent<object,object>.Entity), @context},
-                                                                                                                        {nameof(NavigationPropertyColumnViewerComponent<object,object>.PropertyName), prop.Name}
+                                                                                                                        {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.Entity), @context},
+                                                                                                                                                      {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.PropertyName), prop.Name}
                                                             })" />
                 }
                 else

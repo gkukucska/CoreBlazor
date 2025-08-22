@@ -7,7 +7,7 @@
 @typeparam TContext where TContext : DbContext
 @typeparam TEntity where TEntity : class
 @implements IAsyncDisposable
-@inject CoreBlazorDbSetOptions<TEntity>? DbSetOptions;
+@inject CoreBlazorDbSetOptions<TContext,TEntity>? DbSetOptions;
 @inject IDbContextFactory<TContext> ContextFactory
 
 @if (SelectingNavigationProperty is null)
@@ -152,10 +152,10 @@
                 <div class="col-md-10 container">
                     <div class="row">
                         <div class="col-sm" type="text" readonly>
-                            <DynamicComponent Type="typeof(NavigationPropertyColumnViewerComponent<,>).MakeGenericType(typeof(TEntity), property.PropertyType)"
+                            <DynamicComponent Type="typeof(NavigationPropertyColumnViewerComponent<,,>).MakeGenericType(typeof(TContext),typeof(TEntity), property.PropertyType)"
                                               Parameters="@(new Dictionary<string,object>{
-                                                                                                                            {nameof(NavigationPropertyColumnViewerComponent<object,object>.Entity), Entity},
-                                                                                                                            {nameof(NavigationPropertyColumnViewerComponent<object,object>.PropertyName), property.Name}
+                                                                                                                            {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.Entity), Entity},
+                                                                                                                            {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.PropertyName), property.Name}
                                                                 })" />
             </div>
                         @if (!IsDisabled)

@@ -1,6 +1,8 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace CoreBlazor.Configuration;
 
-public class CoreBlazorDbSetOptionsBuilder<TEntity> where TEntity: class
+public class CoreBlazorDbSetOptionsBuilder<TContext, T> where TContext : DbContext where T : class
 {
-    internal CoreBlazorDbSetOptions<TEntity> Options { get; } = new();
+    internal CoreBlazorDbSetOptions<TContext,T> Options { get; } = new();
 }

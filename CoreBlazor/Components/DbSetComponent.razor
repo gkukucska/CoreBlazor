@@ -9,7 +9,7 @@
 @implements IAsyncDisposable
 @inject IDbContextFactory<TContext> ContextFactory;
 @inject NavigationManager NavigationManager;
-@inject CoreBlazorDbSetOptions<TEntity>? DbSetOptions;
+@inject CoreBlazorDbSetOptions<TContext,TEntity>? DbSetOptions;
 <Button Color="ButtonColor.Primary" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Create")">
     Add New Entity
 </Button>
@@ -29,10 +29,10 @@
             <GridColumn TItem="TEntity" HeaderText="@prop.Name" PropertyName="@prop.Name" Filterable="@IsFilterable(prop)" Sortable="@IsSortable(prop)" SortString="@prop.Name" SortKeySelector="prop.GetMemberAccessExpressionWithConversion<TEntity, IComparable>()">
                 @if (_context.IsNavigation<TEntity>(prop))
                 {
-                    <DynamicComponent Type="typeof(NavigationPropertyColumnViewerComponent<,>).MakeGenericType(typeof(TEntity), prop.PropertyType)"
+                    <DynamicComponent Type="typeof(NavigationPropertyColumnViewerComponent<,,>).MakeGenericType(typeof(TContext),typeof(TEntity), prop.PropertyType)"
                                       Parameters="@(new Dictionary<string,object>{
-                                                                                          {nameof(NavigationPropertyColumnViewerComponent<object,object>.Entity), @context},
-                                                                                          {nameof(NavigationPropertyColumnViewerComponent<object,object>.PropertyName), prop.Name}
+                                                                                          {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.Entity), @context},
+                                                                                                                        {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.PropertyName), prop.Name}
                               })" />
                         }
                 else
