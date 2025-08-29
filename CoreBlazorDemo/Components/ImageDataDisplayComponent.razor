@@ -1,0 +1,9 @@
+﻿@using CoreBlazor.Configuration
+@using DemoDb
+@implements IEntityDisplayComponent<ImageData>
+<ImageDisplayComponent PropertyValue="@Entity?.Data"/>
+@code {
+
+    [Parameter]
+    public ImageData? Entity { get; set; }
+}

@@ -10,13 +10,19 @@ builder.Services.AddBlazorBootstrap()
     .AddDbContextFactory<DemoDbContext>()
     .AddCoreBlazor().ConfigureContext<DemoDbContext>(options =>
         options.WithTitle("Demo Db")
-               .ConfigureSet<DemoDbContext,JobEntity>(jobOptions => jobOptions.WithStringDisplay(job => $"{job?.Name}, salary: {job?.Salary}")
+               .ConfigureSet<DemoDbContext,Job>(jobOptions => jobOptions.WithDisplay<DemoDbContext,Job,JobDisplayComponent>()
                                                                               .WithPropertyHidden(job=>job.Id)
                                                                               .WithTitle("Jobs"))
-               .ConfigureSet<DemoDbContext,Person>(personOptions => personOptions.WithStringDisplay(person => person.Name)
+               .ConfigureSet(context=> context.People, personOptions => personOptions.WithDisplay(person => person.Name)
                                                                                  .WithPropertyHidden(person => person.Id)
                                                                                  .WithPropertyHidden(person => person.JobId)
-                                                                                 .WithTitle("People"))).Services
+                                                                                 .WithPropertyDisplay(person =>person.Gender, typeof(GenderDisplayComponent))
+                                                                                 .WithTitle("People"))
+               .ConfigureSet(context=>context.Images, imageOptions => imageOptions.WithTitle("Profile images")
+                                                                                  .WithDisplay(typeof(ImageDataDisplayComponent))
+                                                                                  .WithPropertyHidden(image=>image.Id)
+                                                                                  .WithPropertyDisplay(image => image.Data, typeof(ImageDisplayComponent))
+                                                                                  .WithPropertyEditor(image => image.Data, typeof(ImageEditorComponent)))).Services
     .AddRazorComponents()
     .AddInteractiveServerComponents();
 

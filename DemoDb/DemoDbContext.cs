@@ -9,8 +9,9 @@ public class DemoDbContext : DbContext
     public DbSet<Person> People { get; set; }
 
 
-    public DbSet<JobEntity> Jobs { get; set; }
-    
+    public DbSet<Job> Jobs { get; set; }
+    public DbSet<ImageData> Images { get; set; }
+
     public DemoDbContext() : base()
     {
         Database.EnsureCreated();
@@ -26,13 +27,13 @@ public class DemoDbContext : DbContext
 
         // Generate fake data
 
-        var jobFaker = new Faker<JobEntity>()
+        var jobFaker = new Faker<Job>()
             .RuleFor(j => j.Id, f => f.IndexFaker + 1)
             .RuleFor(j => j.Name, f => f.Name.JobTitle())
             .RuleFor(j => j.Salary, f => f.Random.Int(30000, 150000));
 
         var jobs = jobFaker.Generate(500);
-        modelBuilder.Entity<JobEntity>().HasData(jobs);
+        modelBuilder.Entity<Job>().HasData(jobs);
 
         var personFaker = new Faker<Person>()
             .RuleFor(p => p.Id, f => Guid.NewGuid())

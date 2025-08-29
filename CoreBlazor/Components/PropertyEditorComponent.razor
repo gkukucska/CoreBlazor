@@ -16,6 +16,17 @@
     @foreach (var property in typeof(TEntity).GetProperties().Where(property => property.IsDisplayable() &&
                     (!DbSetOptions?.HiddenProperties.Any(y => y.Name == property.Name && y.PropertyType == property.PropertyType) ?? true) && !_context.IsGeneratedPrimaryKey<TEntity>(property)))
     {
+        if (DbSetOptions?.EditingTypes.SingleOrDefault(x=> x.Key.Name == property.Name && x.Key.PropertyType == property.PropertyType) is {Value: Type displayType})
+        {
+            <DynamicComponent Type="displayType"
+                              Parameters="@(new Dictionary<string,object>{
+                                                                                              {nameof(IPropertyEditComponent<TEntity>.Entity), Entity},
+                                                                                              {nameof(IPropertyEditComponent<TEntity>.ValueSelected), EventCallback.Factory.Create(this,x=> property.SetValue(Entity,x))},
+                                                                                              {nameof(IPropertyEditComponent<TEntity>.IsDisabled), IsDisabled}
+                                                                                           })" />
+            continue;
+        }
+
         if (property.PropertyType == typeof(bool))
         {
             <div class="form-group row mb-3">
@@ -140,9 +151,9 @@
         {
             <DynamicComponent Type="typeof(EnumPropertyEditorComponent<,>).MakeGenericType(typeof(TEntity), property.PropertyType)"
                               Parameters="@(new Dictionary<string,object>{
-                                                                            {nameof(EnumPropertyEditorComponent<object,object>.Entity), Entity},
-                                                                            {nameof(EnumPropertyEditorComponent<object,object>.PropertyName), property.Name},
-                                                                            {nameof(EnumPropertyEditorComponent<object,object>.IsDisabled), IsDisabled}
+                                                                                              {nameof(EnumPropertyEditorComponent<TEntity,object>.Entity), Entity},
+                                                                                              {nameof(EnumPropertyEditorComponent<TEntity,object>.PropertyName), property.Name},
+                                                                                              {nameof(EnumPropertyEditorComponent<TEntity,object>.IsDisabled), IsDisabled}
                                                                          })" />
     }
         if (_navigations.Any(navigation => navigation.PropertyInfo.Name == property.Name && navigation.PropertyInfo.PropertyType == property.PropertyType))
@@ -157,7 +168,7 @@
                                                                                                                             {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.Entity), Entity},
                                                                                                                             {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.PropertyName), property.Name}
                                                                 })" />
-            </div>
+                        </div>
                         @if (!IsDisabled)
                         {
                             <Button class="col-sm   col-lg-3" Color="ButtonColor.Primary" @onclick="_ => InitiateNavigationSelection(property)">Select</Button>

@@ -1,0 +1,25 @@
+﻿@using CoreBlazor.Configuration
+@using CoreBlazor.Interfaces
+@using DemoDb
+@implements IEntityDisplayComponent<Job>
+<div>
+    @Entity.Name
+    <Icon Name="IconName.CurrencyDollar" />
+    @if (Entity.Salary > 10000)
+    {
+        <Icon Name="IconName.CurrencyDollar" />
+    }
+    @if (Entity.Salary > 50000)
+    {
+        <Icon Name="IconName.CurrencyDollar" />
+    }
+    @if (Entity.Salary > 100000)
+    {
+        <Icon Name="IconName.CurrencyDollar" />
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Job Entity { get; set; }
+}

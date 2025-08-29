@@ -6,13 +6,24 @@
 @typeparam TProperty where TProperty : class
 @inject CoreBlazorDbSetOptions<TContext,TProperty>? DbSetOptions
 
-@(DbSetOptions?.StringDisplay(_propertyInfo.GetValue(Entity) as TProperty) ?? _propertyInfo.GetValue(Entity))
+@if (DbSetOptions?.ComponentDisplay is not null)
+{
+    <DynamicComponent Type="DbSetOptions.ComponentDisplay" Parameters="new Dictionary<string, object>() { { nameof(IEntityDisplayComponent<TProperty>.Entity), _propertyInfo.GetValue(Entity) } }" />
+}
+else if (DbSetOptions?.StringDisplay is not null)
+{
+    DbSetOptions.StringDisplay.Invoke(_propertyInfo.GetValue(Entity) as TProperty);
+}
+else
+{
+    _propertyInfo.GetValue(Entity);
+}
 
 @code {
     private PropertyInfo _propertyInfo;
 
     [Parameter]
-    public TEntity Entity{ get; set; }
+    public TEntity Entity { get; set; }
 
     [Parameter]
     public string PropertyName { get; set; }

@@ -1,16 +1,19 @@
 ﻿@using System.Reflection
+@using CoreBlazor.Configuration
 @using CoreBlazor.Utils
+@using Microsoft.EntityFrameworkCore
 @typeparam TEntity
 @typeparam TProperty
 <div class="form-group row mb-3">
     <label class="col-md-2 col-form-label">@PropertyName</label>
     <div class="col-md-10">
         <InputSelect TValue="TProperty" class="form-select" ValueExpression="_propertyInfo.GetValueAccessExpression<TEntity, TProperty>(Entity)"
-                ValueChanged="value =>_propertyInfo.SetValue(Entity,value)" disabled="@IsDisabled">
-            @foreach (var item in Enum.GetValues(_propertyInfo.PropertyType).OfType<TProperty>())
-            {
-                <option value="@item"> @item.ToString()</option>
-            }
+                     ValueChanged="value =>_propertyInfo.SetValue(Entity,value)" disabled="@IsDisabled">
+
+                @foreach (var item in Enum.GetValues(_propertyInfo.PropertyType).OfType<TProperty>())
+                {
+                    <option value="@item"> @item.ToString()</option>
+                }
         </InputSelect>
         <ValidationMessage TValue="TProperty" For="@(_propertyInfo.GetValueAccessExpression<TEntity, TProperty>(Entity))" />
     </div>

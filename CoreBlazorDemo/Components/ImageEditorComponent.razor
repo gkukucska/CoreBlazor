@@ -1,0 +1,47 @@
+﻿@using CoreBlazor.Configuration
+@using DemoDb
+@implements IPropertyEditComponent<ImageData>
+
+<div class="m-2">
+    <ImageDisplayComponent PropertyValue="@Image" MaxWidthPx="800" MaxHeightPx="800" />
+    <ValidationMessage TValue="byte[]" For="@(()=>Entity.Data)" />
+</div>
+@if (!IsDisabled)
+{
+    <div class="d-flex flex-row">
+        <InputFile OnChange="LoadFiles" Class="form-control m-2" />
+        <Button Color="ButtonColor.Primary" @onclick="OnClearClicked" class="m-2">Clear</Button>
+    </div>
+}
+@code {
+    [Parameter]
+    public ImageData Entity { get; set; }
+    [Parameter]
+    public EventCallback ValueSelected { get; set; }
+    [Parameter]
+    public bool IsDisabled { get; set; }
+
+    public byte[]? Image { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        Image = Entity?.Data;
+        base.OnParametersSet();
+    }
+
+    public async Task OnClearClicked()
+    {
+        Image = null;
+        await ValueSelected.InvokeAsync(Array.Empty<byte>());
+    }
+
+    private async Task LoadFiles(InputFileChangeEventArgs args)
+    {
+        await using var stream = args.File.OpenReadStream();
+        await using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        await ValueSelected.InvokeAsync(ms.ToArray());
+        Image = ms.ToArray();
+        StateHasChanged();
+    }
+}

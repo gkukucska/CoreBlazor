@@ -6,6 +6,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Include="..\CoreBlazorDemo\Components\Component.razor" Link="Component.razor" />
+    <None Include="..\CoreBlazorDemo\Components\Component1.razor" Link="Component1.razor" />
+  </ItemGroup>
+
 
 
   <ItemGroup>

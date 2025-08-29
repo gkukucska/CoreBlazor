@@ -1,0 +1,22 @@
+﻿@using CoreBlazor.Configuration
+@using CoreBlazor.Interfaces
+@using DemoDb
+@implements IPropertyDisplayComponent<Gender>
+
+@switch (PropertyValue)
+{
+    case Gender.Male:
+        <Icon Name="IconName.GenderMale" />
+        break;
+    case Gender.Female:
+        <Icon Name="IconName.GenderFemale" />
+        break;
+    case Gender.Helicopter:
+        <Icon Name="IconName.HCircleFill" />
+        break;
+}
+
+@code {
+    [Parameter]
+    public Gender PropertyValue { get; set; }
+}

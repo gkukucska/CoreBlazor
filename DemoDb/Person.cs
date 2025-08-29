@@ -16,5 +16,7 @@ public class Person
 
     public int JobId { get; set; }
 
-    public JobEntity? Job { get; set; } 
+    public Job? Job { get; set; }
+
+    public ImageData? ProfileImage { get; set; }
 }

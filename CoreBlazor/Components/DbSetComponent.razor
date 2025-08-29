@@ -29,12 +29,18 @@
             <GridColumn TItem="TEntity" HeaderText="@prop.Name" PropertyName="@prop.Name" Filterable="@IsFilterable(prop)" Sortable="@IsSortable(prop)" SortString="@prop.Name" SortKeySelector="prop.GetMemberAccessExpressionWithConversion<TEntity, IComparable>()">
                 @if (_context.IsNavigation<TEntity>(prop))
                 {
-                    <DynamicComponent Type="typeof(NavigationPropertyColumnViewerComponent<,,>).MakeGenericType(typeof(TContext),typeof(TEntity), prop.PropertyType)"
+                    <DynamicComponent Type="typeof(NavigationPropertyColumnViewerComponent<,,>).MakeGenericType(typeof(TContext), typeof(TEntity), prop.PropertyType)"
                                       Parameters="@(new Dictionary<string,object>{
-                                                                                          {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.Entity), @context},
+                                                                                                                        {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.Entity), @context},
                                                                                                                         {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.PropertyName), prop.Name}
-                              })" />
-                        }
+                                                            })" />
+                }
+                else if (DbSetOptions?.DisplayTypes.SingleOrDefault(x => x.Key.Name == prop.Name && x.Key.PropertyType == prop.PropertyType) is { Value: { } displayType })
+                {
+                    <DynamicComponent Type="displayType" Parameters="new Dictionary<string, object>{
+                                                           {nameof(IPropertyDisplayComponent<TEntity>.PropertyValue),prop.GetValue(context)}
+                                                       }" />
+                }
                 else
                 {
                     @prop.GetValue(@context)

@@ -1,3 +1,4 @@
+using CoreBlazor.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq.Expressions;
@@ -49,6 +50,19 @@ public static class ConfigurationExtensions
     }
 
 
+    public static CoreBlazorDbContextOptionsBuilder<TContext> ConfigureSet<TContext, TEntity>(this CoreBlazorDbContextOptionsBuilder<TContext> contextOptionsBuilder, Expression<Func<TContext, DbSet<TEntity>>> propertyAccessor, Action<CoreBlazorDbSetOptionsBuilder<TContext, TEntity>> optionsBuilder) where TContext : DbContext where TEntity : class
+    {
+        if (propertyAccessor is not { Body: MemberExpression { Member: PropertyInfo property } })
+        {
+            throw new ArgumentException("Property accessor must be a simple member expression", nameof(propertyAccessor));
+        }
+        var setOptionsBuilder = new CoreBlazorDbSetOptionsBuilder<TContext, TEntity>();
+        optionsBuilder(setOptionsBuilder);
+        contextOptionsBuilder.Services.AddSingleton(setOptionsBuilder.Options);
+        return contextOptionsBuilder;
+    }
+
+
     public static CoreBlazorDbContextOptionsBuilder<TContext> ConfigureSet<TContext, TEntity>(this CoreBlazorDbContextOptionsBuilder<TContext> contextOptionsBuilder, CoreBlazorDbSetOptions<TContext,TEntity> options) where TContext : DbContext where TEntity : class
     {
         contextOptionsBuilder.Services.AddSingleton(options);
@@ -71,9 +85,25 @@ public static class ConfigurationExtensions
         return optionsBuilder;
     }
 
-    public static CoreBlazorDbSetOptionsBuilder<TContext, TEntity> WithStringDisplay<TContext, TEntity>(this CoreBlazorDbSetOptionsBuilder<TContext, TEntity> optionsBuilder, Func<TEntity, string> displayColumnMethod) where TContext : DbContext where TEntity : class
+    public static CoreBlazorDbSetOptionsBuilder<TContext, TEntity> WithDisplay<TContext, TEntity>(this CoreBlazorDbSetOptionsBuilder<TContext, TEntity> optionsBuilder, Func<TEntity, string> displayColumnMethod) where TContext : DbContext where TEntity : class
     {
-        optionsBuilder.Options.StringDisplay=displayColumnMethod;
+        optionsBuilder.Options.StringDisplay = displayColumnMethod;
+        return optionsBuilder;
+    }
+
+    public static CoreBlazorDbSetOptionsBuilder<TContext, TEntity> WithDisplay<TContext, TEntity, TDisplay>(this CoreBlazorDbSetOptionsBuilder<TContext, TEntity> optionsBuilder) where TContext : DbContext where TEntity : class where TDisplay : IEntityDisplayComponent<TEntity>
+    {
+        optionsBuilder.Options.ComponentDisplay = typeof(TDisplay);
+        return optionsBuilder;
+    }
+
+    public static CoreBlazorDbSetOptionsBuilder<TContext, TEntity> WithDisplay<TContext, TEntity>(this CoreBlazorDbSetOptionsBuilder<TContext, TEntity> optionsBuilder, Type displayType) where TContext : DbContext where TEntity : class 
+    {
+        if (!typeof(IEntityDisplayComponent<TEntity>).IsAssignableFrom(displayType))
+        {
+            throw new ArgumentException($"Display type must implement IEntityDisplayComponent<{typeof(TEntity).Name}>", nameof(displayType));
+        }
+        optionsBuilder.Options.ComponentDisplay = displayType;
         return optionsBuilder;
     }
 
@@ -93,14 +123,25 @@ public static class ConfigurationExtensions
         {
             throw new ArgumentException("Property accessor must be a simple member expression", nameof(propertyAccessor));
         }
+        if (!typeof(IPropertyDisplayComponent<TProperty>).IsAssignableFrom(displayComponent))
+        {
+            throw new ArgumentException($"Display type must implement IPropertyDisplayComponent<{typeof(TEntity).Name}>", nameof(displayComponent));
+        }
         optionsBuilder.Options.DisplayTypes.Add(new(property, displayComponent));
         return optionsBuilder;
     }
 
-    public static CoreBlazorDbSetOptionsBuilder<TContext, TEntity> WithPropertyDisplay<TContext, TEntity, TProperty, TDisplayComponent>(this CoreBlazorDbSetOptionsBuilder<TContext, TEntity> optionsBuilder, string propertyName) where TContext : DbContext where TEntity : class
+    public static CoreBlazorDbSetOptionsBuilder<TContext, TEntity> WithPropertyEditor<TContext, TEntity, TProperty>(this CoreBlazorDbSetOptionsBuilder<TContext, TEntity> optionsBuilder, Expression<Func<TEntity, TProperty>> propertyAccessor, Type editorComponent) where TContext : DbContext where TEntity : class
     {
-        var property = typeof(TEntity).GetProperty(propertyName,typeof(TProperty));
-        optionsBuilder.Options.DisplayTypes.Add(new(property, typeof(TDisplayComponent)));
+        if (propertyAccessor is not { Body: MemberExpression { Member: PropertyInfo property } })
+        {
+            throw new ArgumentException("Property accessor must be a simple member expression", nameof(propertyAccessor));
+        }
+        if (!typeof(IPropertyEditComponent<TEntity>).IsAssignableFrom(editorComponent))
+        {
+            throw new ArgumentException($"Edit type must implement IPropertyEditComponent<{typeof(TEntity).Name}>", nameof(editorComponent));
+        }
+        optionsBuilder.Options.EditingTypes.Add(new(property, editorComponent));
         return optionsBuilder;
     }
 }

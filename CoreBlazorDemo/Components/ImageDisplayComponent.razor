@@ -1,0 +1,24 @@
+﻿@using CoreBlazor.Configuration
+@using DemoDb
+@implements IPropertyDisplayComponent<byte[]>
+@if (PropertyValue is not null and { Length: > 0 })
+{
+    <div style="@($"max-width: {MaxWidthPx}px; max-height: {MaxHeightPx}px")">
+        <Image Src="@($"data:image/bmp;base64, {Convert.ToBase64String(PropertyValue)}")" Class="m-4" />
+    </div>
+}
+else
+{
+    <Icon Name="IconName.Image" Size="IconSize.x1" />
+}
+@code {
+
+    [Parameter]
+    public byte[] PropertyValue { get; set; }
+
+    [Parameter]
+    public int MaxWidthPx { get; set; } = 100;
+
+    [Parameter]
+    public int MaxHeightPx { get; set; } = 100;
+}
