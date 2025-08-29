@@ -1,9 +1,10 @@
-﻿@using CoreBlazor.Configuration
+﻿@using System.Reflection
+@using CoreBlazor.Configuration
+@using CoreBlazor.Interfaces
 @using CoreBlazor.Utils
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.EntityFrameworkCore.Metadata
 @using Microsoft.Extensions.DependencyInjection
-@using System.Reflection
 @typeparam TContext where TContext : DbContext
 @typeparam TEntity where TEntity : class
 @implements IAsyncDisposable
