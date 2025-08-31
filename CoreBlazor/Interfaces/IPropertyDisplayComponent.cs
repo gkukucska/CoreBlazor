@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace CoreBlazor.Interfaces
+namespace CoreBlazor.Interfaces;
+
+public interface IPropertyDisplayComponent<TProperty>
 {
-    public interface IPropertyDisplayComponent<TProperty>
-    {
-        [Parameter]
-        public TProperty PropertyValue { get; set; }
-    }
+    [Parameter]
+    public TProperty PropertyValue { get; set; }
 }

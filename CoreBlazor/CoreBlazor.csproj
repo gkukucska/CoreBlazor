@@ -6,11 +6,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="..\CoreBlazorDemo\Components\Component.razor" Link="Component.razor" />
-    <None Include="..\CoreBlazorDemo\Components\Component1.razor" Link="Component1.razor" />
-  </ItemGroup>
-
 
 
   <ItemGroup>
@@ -21,4 +16,7 @@
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.8" />
     </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="CoreBlazor.Tests.csproj"/>
+  </ItemGroup>
 </Project>
