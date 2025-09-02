@@ -42,9 +42,11 @@
 
     private async Task OnSaveChanges(EditContext args)
     {
-        foreach (var navigation in _context.GetNavigations<TEntity>())
+        foreach (var navigation in _context.GetNavigations<TEntity>()
+                                           .Select(x=>x.PropertyInfo?.GetValue(Entity))
+                                           .Where(x=> x is not null))
         {
-            _context.Attach(navigation.PropertyInfo.GetValue(Entity));
+            _context.Attach(navigation);
         }
         _context.Attach(Entity);
         _context.Update(Entity);

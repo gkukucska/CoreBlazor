@@ -35,9 +35,11 @@
     private async Task OnSaveChanges(EditContext args)
     {
         await using var context = await ContextFactory.CreateDbContextAsync();
-        foreach (var navigation in context.GetNavigations<TEntity>())
+        foreach (var navigation in context.GetNavigations<TEntity>()
+                                          .Select(x => x.PropertyInfo?.GetValue(Entity))
+                                          .Where(x => x is not null))
         {
-            context.Attach(navigation.PropertyInfo.GetValue(Entity));
+            context.Attach(navigation);
         }
         await context.AddAsync(Entity);
         await context.SaveChangesAsync();
