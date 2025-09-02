@@ -47,10 +47,7 @@ public class CoreBlazorPropertyOptionsBuilder<TEntity, TProperty> where TEntity 
     }
     public CoreBlazorDbSetOptionsBuilder<TEntity> WithEntityDisplay<TDisplay>() where TDisplay : IEntityDisplayComponent<TEntity>
     {
-        if (!_optionsBuilder.Options.DisplayTypes.Any(kv => kv.Key == _property))
-        {
-            _optionsBuilder.Options.DisplayTypes.Add(new KeyValuePair<PropertyInfo, Type>(_property, typeof(TDisplay)));
-        }
+        _optionsBuilder.Options.ComponentDisplay = typeof(TDisplay);    
         return OptionsBuilder;
     }
     public CoreBlazorDbSetOptionsBuilder<TEntity> WithEntityDisplay(Type displayType)
@@ -59,10 +56,7 @@ public class CoreBlazorPropertyOptionsBuilder<TEntity, TProperty> where TEntity 
         {
             throw new ArgumentOutOfRangeException(nameof(displayType), $"Display component must implement {typeof(IEntityDisplayComponent<TEntity>).Name}");
         }
-        if (!_optionsBuilder.Options.DisplayTypes.Any(kv => kv.Key == _property))
-        {
-            _optionsBuilder.Options.DisplayTypes.Add(new KeyValuePair<PropertyInfo, Type>(_property, displayType));
-        }
+        _optionsBuilder.Options.ComponentDisplay = displayType;
         return OptionsBuilder;
     }
     public CoreBlazorPropertyOptionsBuilder<TEntity, TProperty> WithEditor(Type editorComponent)

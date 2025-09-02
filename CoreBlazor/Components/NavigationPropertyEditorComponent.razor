@@ -31,18 +31,14 @@
             <GridColumn TItem="TProperty" HeaderText="@prop.Name" PropertyName="@prop.Name" Filterable="@IsFilterable(prop)" Sortable="@IsSortable(prop)" SortString="@prop.Name" SortKeySelector="prop.GetMemberAccessExpressionWithConversion<TProperty, IComparable>()">
                 @if (_context.IsNavigation<TEntity>(prop))
                 {
-                    <DynamicComponent Type="typeof(NavigationPropertyColumnViewerComponent<,,>).MakeGenericType(typeof(TContext),typeof(TEntity), prop.PropertyType)"
-                                      Parameters="@(new Dictionary<string,object>{
-                                                                                                                        {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.Entity), @context},
-                                                                                                                                                      {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.PropertyName), prop.Name}
-                                                            })" />
-                        }
+                    <DynamicComponent Type="@CreateNavigationPropertyViewerColumnType(prop)"
+                                      Parameters="@CreateNavigationPropertyViewerColumnParameters(context,prop.Name)" />
+                }
                 else if (DbSetOptions?.DisplayTypes.SingleOrDefault(x => x.Key.Name == prop.Name && x.Key.PropertyType == prop.PropertyType) is { Value: { } displayType })
                 {
-                    <DynamicComponent Type="displayType" Parameters="new Dictionary<string, object>{
-                                                                                                            {nameof(IPropertyDisplayComponent<TEntity>.PropertyValue),prop.GetValue(context)}
-                                                                                                        }" />
-                        }
+                    <DynamicComponent Type="displayType" 
+                                      Parameters="@CreateDiplayParameters(prop.GetValue(context))" />
+                }
                 else
                 {
                     @prop.GetValue(@context)
@@ -59,6 +55,22 @@
 
     [Parameter]
     public EventCallback PropertySelected { get; set; }
+
+    private static Type CreateNavigationPropertyViewerColumnType(PropertyInfo prop)
+        => typeof(NavigationPropertyColumnViewerComponent<,,>).MakeGenericType(typeof(TContext), typeof(TEntity), prop.PropertyType);
+
+    private static Dictionary<string, object> CreateNavigationPropertyViewerColumnParameters(TProperty entity, string propertyName)
+        => new Dictionary<string, object>
+        {
+            {nameof(NavigationPropertyColumnViewerComponent<DbContext, object, object>.Entity), entity},
+            { nameof(NavigationPropertyColumnViewerComponent<DbContext, object, object>.PropertyName), propertyName}
+        };
+
+    private Dictionary<string, object> CreateDiplayParameters(object propertyValue)
+        => new Dictionary<string, object>
+        {
+            {nameof(IPropertyDisplayComponent<TEntity>.PropertyValue), propertyValue},
+        };
 
     protected override async Task OnParametersSetAsync()
     {
@@ -80,7 +92,7 @@
     }
 
     public async ValueTask DisposeAsync()
-        => await _context.DisposeAsync();
+        => await (_context?.DisposeAsync() ?? ValueTask.CompletedTask);
 
     private void SelectButtonClicked(TProperty entity)
     {

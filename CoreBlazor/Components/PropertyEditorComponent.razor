@@ -15,16 +15,12 @@
 {
 
     @foreach (var property in typeof(TEntity).GetProperties().Where(property => property.IsDisplayable() &&
-                    (!DbSetOptions?.HiddenProperties.Any(y => y.Name == property.Name && y.PropertyType == property.PropertyType) ?? true) && !_context.IsGeneratedPrimaryKey<TEntity>(property)))
+                            (!DbSetOptions?.HiddenProperties.Any(y => y.Name == property.Name && y.PropertyType == property.PropertyType) ?? true) && !_context.IsGeneratedPrimaryKey<TEntity>(property)))
     {
-        if (DbSetOptions?.EditingTypes.SingleOrDefault(x=> x.Key.Name == property.Name && x.Key.PropertyType == property.PropertyType) is {Value: Type displayType})
+        if (DbSetOptions?.EditingTypes.SingleOrDefault(x => x.Key.Name == property.Name && x.Key.PropertyType == property.PropertyType) is { Value: Type displayType })
         {
             <DynamicComponent Type="displayType"
-                              Parameters="@(new Dictionary<string,object>{
-                                                                                              {nameof(IPropertyEditComponent<TEntity>.Entity), Entity},
-                                                                                              {nameof(IPropertyEditComponent<TEntity>.ValueSelected), EventCallback.Factory.Create(this,x=> property.SetValue(Entity,x))},
-                                                                                              {nameof(IPropertyEditComponent<TEntity>.IsDisabled), IsDisabled}
-                                                                                           })" />
+                              Parameters="@CreatePropertyEditComponentParameters(property)" />
             continue;
         }
 
@@ -150,12 +146,8 @@
         }
         if (property.PropertyType.IsEnum)
         {
-            <DynamicComponent Type="typeof(EnumPropertyEditorComponent<,>).MakeGenericType(typeof(TEntity), property.PropertyType)"
-                              Parameters="@(new Dictionary<string,object>{
-                                                                                              {nameof(EnumPropertyEditorComponent<TEntity,object>.Entity), Entity},
-                                                                                              {nameof(EnumPropertyEditorComponent<TEntity,object>.PropertyName), property.Name},
-                                                                                              {nameof(EnumPropertyEditorComponent<TEntity,object>.IsDisabled), IsDisabled}
-                                                                         })" />
+            <DynamicComponent Type="@CreateEnumEditorComponentType(property)"
+                              Parameters="@CreateEnumEditorComponentParameters(property)" />
     }
         if (_navigations.Any(navigation => navigation.PropertyInfo.Name == property.Name && navigation.PropertyInfo.PropertyType == property.PropertyType))
         {
@@ -164,16 +156,13 @@
                 <div class="col-md-10 container">
                     <div class="row">
                         <div class="col-sm" type="text" readonly>
-                            <DynamicComponent Type="typeof(NavigationPropertyColumnViewerComponent<,,>).MakeGenericType(typeof(TContext),typeof(TEntity), property.PropertyType)"
-                                              Parameters="@(new Dictionary<string,object>{
-                                                                                                                            {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.Entity), Entity},
-                                                                                                                            {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.PropertyName), property.Name}
-                                                                })" />
-                        </div>
-                        @if (!IsDisabled)
-                        {
+                            <DynamicComponent Type="@CreateNavigationPropertyColumnViewerComponentType(property)"
+                                              Parameters="@CreateNavigationPropertyColumnViewerComponentParameters(property)" />
+            </div>
+            @if (!IsDisabled)
+            {
                             <Button class="col-sm   col-lg-3" Color="ButtonColor.Primary" @onclick="_ => InitiateNavigationSelection(property)">Select</Button>
-                        }
+            }
                     </div>
                 </div>
             </div>
@@ -184,23 +173,15 @@
 else
 {
     <Button @onclick="_ => SelectingNavigationProperty = null" Color="ButtonColor.Secondary">Cancel selection</Button>
-    <DynamicComponent Type="typeof(NavigationPropertyEditorComponent<,,>).MakeGenericType(typeof(TEntity), SelectingNavigationProperty.PropertyType, typeof(TContext))"
-                      Parameters="@(new Dictionary<string, object>
-                                                          {
-                                                              { nameof(NavigationPropertyEditorComponent<object, object, DbContext>.NavigationPropertyName), SelectingNavigationProperty.Name },
-                                                              { nameof(NavigationPropertyEditorComponent<object, object, DbContext>.PropertySelected), EventCallback.Factory.Create(this, SelectionComplete)}
-                                                                            })" />
+    <DynamicComponent Type="@CreateNavigationPropertyEditorType(SelectingNavigationProperty)"
+                      Parameters="@CreateNavigationPropertyEditorParameters(SelectingNavigationProperty)" />
 }
 @code {
     private TContext _context;
     private List<INavigation> _navigations;
 
     [Parameter]
-    public TEntity Entity
-    {
-        get;
-        set;
-    }
+    public TEntity Entity { get; set; }
 
     [Parameter]
     public bool IsDisabled { get; set; } = false;
@@ -212,6 +193,41 @@ else
         _context = await ContextFactory.CreateDbContextAsync();
         _navigations = _context.GetNavigations<TEntity>().ToList();
     }
+
+    private Dictionary<string, object> CreatePropertyEditComponentParameters(PropertyInfo property)
+        => new Dictionary<string, object>{
+            {nameof(IPropertyEditComponent<TEntity>.Entity), Entity},
+            {nameof(IPropertyEditComponent<TEntity>.ValueSelected), EventCallback.Factory.Create(this,x=> property.SetValue(Entity,x))},
+            {nameof(IPropertyEditComponent<TEntity>.IsDisabled), IsDisabled}
+        };
+
+    private Type CreateEnumEditorComponentType(PropertyInfo property)
+        => typeof(EnumPropertyEditorComponent<,>).MakeGenericType(typeof(TEntity), property.PropertyType);
+
+    private Dictionary<string, object> CreateEnumEditorComponentParameters(PropertyInfo property)
+        => new Dictionary<string, object>{
+            {nameof(EnumPropertyEditorComponent<TEntity,object>.Entity), Entity},
+            {nameof(EnumPropertyEditorComponent<TEntity,object>.PropertyName), property.Name},
+            {nameof(EnumPropertyEditorComponent<TEntity,object>.IsDisabled), IsDisabled}
+        };
+
+    private Type CreateNavigationPropertyColumnViewerComponentType(PropertyInfo property)
+        => typeof(NavigationPropertyColumnViewerComponent<,,>).MakeGenericType(typeof(TContext), typeof(TEntity), property.PropertyType);
+
+    private Dictionary<string, object> CreateNavigationPropertyColumnViewerComponentParameters(PropertyInfo property)
+        => new Dictionary<string, object>{
+            {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.Entity), Entity},
+            {nameof(NavigationPropertyColumnViewerComponent<DbContext,object,object>.PropertyName), property.Name}
+        };
+
+    private Type CreateNavigationPropertyEditorType(PropertyInfo propertyInfo)
+        => typeof(NavigationPropertyEditorComponent<,,>).MakeGenericType(typeof(TEntity), propertyInfo.PropertyType, typeof(TContext));
+
+    private Dictionary<string, object> CreateNavigationPropertyEditorParameters(PropertyInfo propertyInfo)
+        => new Dictionary<string, object>{
+            { nameof(NavigationPropertyEditorComponent<object, object, DbContext>.NavigationPropertyName), propertyInfo.Name},
+            { nameof(NavigationPropertyEditorComponent<object, object, DbContext>.PropertySelected), EventCallback.Factory.Create(this, SelectionComplete)}
+        };
 
     private void InitiateNavigationSelection(PropertyInfo property)
     {
