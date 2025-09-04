@@ -9,6 +9,7 @@ public static class ServiceCollectionExtensions
 {
     public static CoreBlazorOptionsBuilder AddCoreBlazor(this IServiceCollection services)
     {
+        var discoveredContexts = new List<DiscoveredContext>();
         foreach (var descriptor in services.Where(x => typeof(DbContext).IsAssignableFrom(x.ServiceType)).ToList())
         {
             var type = descriptor.ImplementationType ?? descriptor.ServiceType;
@@ -18,10 +19,11 @@ public static class ServiceCollectionExtensions
             var context = new DiscoveredContext()
             {
                 ContextType = type,
-                Sets = sets.ToList()
+                Sets = [.. sets]
             };
             services.AddSingleton(_ => context);
+            discoveredContexts.Add(context);
         }
-        return new CoreBlazorOptionsBuilder(services);
+        return new CoreBlazorOptionsBuilder(services, discoveredContexts).WithAuthorizationCallback((_,_)=>true);
     }
 }

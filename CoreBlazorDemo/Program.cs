@@ -1,5 +1,4 @@
 using CoreBlazor;
-using CoreBlazor.Configuration;
 using CoreBlazorDemo.Components;
 using DemoDb;
 
@@ -7,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddBlazorBootstrap()
+    .AddAuthorization()
     .AddDbContextFactory<DemoDbContext>()
     .AddCoreBlazor().ConfigureContext<DemoDbContext>(options =>
                         options.WithTitle("Demo Db")
@@ -23,6 +23,12 @@ builder.Services.AddBlazorBootstrap()
                                                                                                                                          .WithEditor<ImageEditorComponent>()
                                                                                                   .ConfigureProperty(image => image.Id).Hidden()
                                                                                                   .WithEntityDisplay<ImageDataDisplayComponent>()))
+                    .WithAuthorizationCallback((info,user)=>
+                    {
+                        Console.WriteLine(info);
+                        Console.WriteLine(user);
+                        return true;
+                    })
     .Services
     .AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -41,6 +47,7 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseAntiforgery();
+app.UseAuthorization();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()

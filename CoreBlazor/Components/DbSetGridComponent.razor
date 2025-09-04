@@ -1,0 +1,104 @@
+@using System.Linq.Expressions
+@using System.Reflection
+@using CoreBlazor.Configuration
+@using CoreBlazor.Interfaces
+@using CoreBlazor.Utils
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Http
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.DependencyInjection
+@typeparam TContext where TContext : Microsoft.EntityFrameworkCore.DbContext
+@typeparam TEntity where TEntity : class
+@inject NavigationManager NavigationManager;
+@inject IDbContextFactory<TContext> ContextFactory;
+@inject CoreBlazorDbSetOptions<TContext,TEntity>? DbSetOptions;
+
+<Grid TItem="TEntity" DataProvider="GetEntities"
+      Class="table table-hover table-bordered table-striped"
+      AllowFiltering="true"
+      AllowSorting="true"
+      AllowPaging="true"
+      Responsive="true"
+      AllowRowClick="@AllowRowClick"
+      OnRowDoubleClick="@GoToEntityEditorPage"
+      PageSize="20">
+    <GridColumns>
+        @foreach (var prop in typeof(TEntity).GetProperties().Where(x => x.IsDisplayable() &&
+                        (!DbSetOptions?.HiddenProperties.Any(y => y.Name == x.Name && y.PropertyType == x.PropertyType) ?? true)))
+        {
+            <GridColumn TItem="TEntity" HeaderText="@prop.Name" PropertyName="@prop.Name" Filterable="@IsFilterable(prop)" Sortable="@IsSortable(prop)" SortString="@prop.Name" SortKeySelector="prop.GetMemberAccessExpressionWithConversion<TEntity, IComparable>()">
+                @if (_context.IsNavigation<TEntity>(prop))
+                {
+                    <DynamicComponent Type="@CreateColumnType(prop)"
+                                      Parameters="@CreateColumnParameters(context,prop.Name)" />
+                }
+                else if (DbSetOptions?.DisplayTypes.SingleOrDefault(x => x.Key.Name == prop.Name && x.Key.PropertyType == prop.PropertyType) is { Value: { } displayType })
+                {
+                    <DynamicComponent Type="displayType"
+                                      Parameters="@CreateCustomColumnParameters(prop.GetValue(context))" />
+                }
+                else
+                {
+                    @prop.GetValue(@context)
+                }
+            </GridColumn>
+        }
+    </GridColumns>
+</Grid>
+@code {
+
+    [Parameter]
+    public bool AllowRowClick { get; set; }
+
+    private TContext _context;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _context = await ContextFactory.CreateDbContextAsync();
+        await base.OnParametersSetAsync();
+    }
+
+    private static Type CreateColumnType(PropertyInfo propertyInfo)
+        => typeof(NavigationPropertyColumnViewerComponent<,,>).MakeGenericType(typeof(TContext), typeof(TEntity), propertyInfo.PropertyType);
+
+    private async Task<GridDataProviderResult<TEntity>> GetEntities(GridDataProviderRequest<TEntity> request)
+        => await _context.ApplyTo<TEntity>(request)
+                         .ConfigureAwait(false);
+
+    private static Dictionary<string, object> CreateColumnParameters(TEntity entity, string propertyName)
+        => new Dictionary<string, object>
+    {
+        {nameof(NavigationPropertyColumnViewerComponent<DbContext,TEntity,object>.Entity), entity},
+        {nameof(NavigationPropertyColumnViewerComponent<DbContext,TEntity,object>.PropertyName), propertyName}
+    };
+
+    private Dictionary<string, object> CreateCustomColumnParameters(object propertyValue)
+        => new Dictionary<string, object>
+    {
+        {nameof(IPropertyDisplayComponent<TEntity>.PropertyValue), propertyValue},
+    };
+
+
+    private bool IsFilterable(PropertyInfo prop)
+    {
+        var context = ContextFactory.CreateDbContext();
+        return !context.IsNavigation<TEntity>(prop);
+    }
+
+    private bool IsSortable(PropertyInfo prop)
+    {
+        return typeof(IComparable).IsAssignableFrom(prop.PropertyType);
+    }
+
+    public async ValueTask DisposeAsync()
+        => await _context.DisposeAsync();
+
+    private Task GoToEntityEditorPage(GridRowEventArgs<TEntity> args)
+    {
+        var primaryKey = _context.GetPrimaryKey<TEntity>();
+        NavigationManager.NavigateTo($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Edit/{primaryKey.PropertyInfo!.GetValue(args.Item)}");
+        return Task.CompletedTask;
+    }
+
+}

@@ -1,8 +1,17 @@
 ﻿@page "/DbContext/{DbContext}/DbSet/{DbSet}/Edit/{EntityId}"
 @using CoreBlazor.Components
+@using CoreBlazor.Configuration
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IEnumerable<DiscoveredContext> DiscoveredContexts
 
-<DynamicComponent Type="@ComponentType" Parameters="@Parameters" />
+<AuthorizeView Policy="@($"{DbContext}/{DbSet}/{Identifiers.Edit}")">
+    <Authorized>
+        <DynamicComponent Type="@ComponentType" Parameters="@Parameters" />
+    </Authorized>
+    <NotAuthorized>
+        <h3>You are not authorized to view this page.</h3>
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     [Parameter]

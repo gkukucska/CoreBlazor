@@ -1,4 +1,6 @@
-﻿@using CoreBlazor.Utils
+﻿@using CoreBlazor.Configuration
+@using CoreBlazor.Utils
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.DependencyInjection
 @using System.Linq.Expressions
@@ -10,11 +12,19 @@
 <EditForm Model="Entity" OnValidSubmit="OnSaveChanges">
     <DataAnnotationsValidator />
     <PropertyEditorComponent TContext="TContext" TEntity="TEntity" Entity="@Entity" />
-    <Button Color="ButtonColor.Primary" Type="ButtonType.Submit" Class="m-1">Save Changes</Button>
-    <Button Color="ButtonColor.Danger" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Delete/{EntityId}")" Class="m-1">
-        <Icon Name="IconName.ExclamationDiamondFill" />
-        Delete
-    </Button>
+    <AuthorizeView Policy="@($"{typeof(TContext).Name}/{typeof(TEntity).Name}/{Identifiers.Edit}")" Context="AuthorizedContext">
+        <Authorized Context="AuthorizedContext">
+            <Button Color="ButtonColor.Primary" Type="ButtonType.Submit" Class="m-1">Save Changes</Button>
+        </Authorized>
+    </AuthorizeView>
+    <AuthorizeView Policy="@($"{typeof(TContext).Name}/{typeof(TEntity).Name}/{Identifiers.Delete}")" Context="AuthorizedContext">
+        <Authorized Context="AuthorizedContext">
+            <Button Color="ButtonColor.Danger" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Delete/{EntityId}")" Class="m-1">
+                <Icon Name="IconName.ExclamationDiamondFill" />
+                Delete
+            </Button>
+        </Authorized>
+    </AuthorizeView>
     <Button Color="ButtonColor.Link" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}")" Class="m-1">Go back</Button>
 </EditForm>
 @code{
