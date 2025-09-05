@@ -1,27 +1,40 @@
 @inject IEnumerable<DiscoveredContext> DiscoveredContexts
 @using BlazorBootstrap
+@using CoreBlazor.Authorization
 @using CoreBlazor.Configuration
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject IAuthorizationService AuthorizationService
 <Sidebar2 Title="CoreBlazor"
          BadgeText="1.0.0"
          DataProvider="SidebarDataProvider"
          WidthUnit="Unit.Px" />
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
     private IEnumerable<NavItem>? _navItems;
 
     private async Task<Sidebar2DataProviderResult> SidebarDataProvider(Sidebar2DataProviderRequest request)
     {
-        _navItems ??= GetNavItems();
+        var user = (await AuthenticationStateTask).User;
+        _navItems ??= await GetNavItems(user).ToListAsync();
 
         return await Task.FromResult(request.ApplyTo(_navItems));
     }
 
-    private IEnumerable<NavItem> GetNavItems()
+    private async IAsyncEnumerable<NavItem> GetNavItems(ClaimsPrincipal user)
     {
         foreach (var context in DiscoveredContexts ?? [])
         {
             ConfigurationHelper.DisplayTitles.TryGetValue(context.ContextType.Name, out var contextTitle);
             contextTitle = contextTitle ?? context.ContextType.Name;
+            var canReadInfo = await AuthorizationService.AuthorizeAsync(user, Policies.CanReadInfo(context.ContextType));
+            if (!canReadInfo.Succeeded)
+            {
+                continue;
+            }
             yield return new NavItem()
             {
                 Text = contextTitle,
@@ -39,7 +52,11 @@
 
             foreach (var set in context.Sets)
             {
-
+                var canRead = await AuthorizationService.AuthorizeAsync(user, Policies.CanRead(context.ContextType, set.EntityType));
+                if (!canRead.Succeeded)
+                {
+                    continue;
+                }
                 ConfigurationHelper.DisplayTitles.TryGetValue(set.EntityType.Name, out var setTitle);
                 setTitle = setTitle ?? set.EntityType.Name;
                 yield return new NavItem()
