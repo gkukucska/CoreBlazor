@@ -1,52 +1,61 @@
+@using CoreBlazor.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.DependencyInjection
 @typeparam TContext where TContext : Microsoft.EntityFrameworkCore.DbContext
 @inject IDbContextFactory<TContext> ContextFactory
-<table class="table table-hover table-bordered table-striped">
-    <tbody>
-        <tr>
-            <th>
-                @nameof(ContextName)
-            </th>
-            <td>
-                @ContextName
-            </td>
-        </tr>
-        @if (!string.IsNullOrEmpty(Provider))
-        {
-            <tr>
-                <th>
-                    @nameof(Provider)
-                </th>
-                <td>
-                    @Provider
-                </td>
-            </tr>
-        }
-        @if (!string.IsNullOrEmpty(DataBase))
-        {
-            <tr>
-                <th>
-                    @nameof(DataBase)
-                </th>
-                <td>
-                    @DataBase
-                </td>
-            </tr>
-        }
-        @if (!string.IsNullOrEmpty(Source))
-        {
-            <tr>
-                <th>
-                    @nameof(Source)
-                </th>
-                <td>
-                    @Source
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<AuthorizeView Policy="@(Policies<TContext>.CanReadInfo)">
+    <Authorized>
+        <table class="table table-hover table-bordered table-striped">
+            <tbody>
+                <tr>
+                    <th>
+                        @nameof(ContextName)
+                    </th>
+                    <td>
+                        @ContextName
+                    </td>
+                </tr>
+                @if (!string.IsNullOrEmpty(Provider))
+                {
+                    <tr>
+                        <th>
+                            @nameof(Provider)
+                        </th>
+                        <td>
+                            @Provider
+                        </td>
+                    </tr>
+                }
+                @if (!string.IsNullOrEmpty(DataBase))
+                {
+                    <tr>
+                        <th>
+                            @nameof(DataBase)
+                        </th>
+                        <td>
+                            @DataBase
+                        </td>
+                    </tr>
+                }
+                @if (!string.IsNullOrEmpty(Source))
+                {
+                    <tr>
+                        <th>
+                            @nameof(Source)
+                        </th>
+                        <td>
+                            @Source
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </Authorized>
+    <NotAuthorized>
+        <h3>You are not authorized to view this page.</h3>
+    </NotAuthorized>
+</AuthorizeView>
 @code {
 
     public string ContextName { get; set; }

@@ -38,19 +38,19 @@ public class CoreBlazorOptionsBuilder
         {
             foreach (var discoveredContext in _contexts)
             {
-                options.AddPolicy($"{discoveredContext.ContextType.Name}/{Identifiers.Info}", policy 
+                options.AddPolicy(Policies.CanReadInfo(discoveredContext.ContextType), policy 
                     => policy.RequireAssertion(context => callback(new(DbContextAction.ReadInfo, discoveredContext.ContextType.Name,string.Empty),context.User)));
                 foreach (var discoveredSet in discoveredContext.Sets)
                 {
-                    options.AddPolicy($"{discoveredContext.ContextType.Name}/{discoveredSet.EntityType.Name}/{Identifiers.Read}", policy
+                    options.AddPolicy(Policies.CanRead(discoveredContext.ContextType, discoveredSet.EntityType), policy
                        => policy.RequireAssertion(context => callback(new(DbContextAction.ReadEntities, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
-                    options.AddPolicy($"{discoveredContext.ContextType.Name}/{discoveredSet.EntityType.Name}/{Identifiers.Create}", policy
+                    options.AddPolicy(Policies.CanCreate(discoveredContext.ContextType, discoveredSet.EntityType), policy
                        => policy.RequireAssertion(context => callback(new(DbContextAction.CreateEntity, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
-                    options.AddPolicy($"{discoveredContext.ContextType.Name}/{discoveredSet.EntityType.Name}/{Identifiers.Edit}", policy
+                    options.AddPolicy(Policies.CanEdit(discoveredContext.ContextType, discoveredSet.EntityType), policy
                        => policy.RequireAssertion(context => callback(new(DbContextAction.EditEntity, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
-                    options.AddPolicy($"{discoveredContext.ContextType.Name}/{discoveredSet.EntityType.Name}/{Identifiers.Delete}", policy
+                    options.AddPolicy(Policies.CanDelete(discoveredContext.ContextType, discoveredSet.EntityType), policy
                        => policy.RequireAssertion(context => callback(new(DbContextAction.DeleteEntity, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
-                    options.AddPolicy($"{discoveredContext.ContextType.Name}/{discoveredSet.EntityType.Name}/{Identifiers.EditOrDelete}", policy
+                    options.AddPolicy(Policies.CanEditOrDelete(discoveredContext.ContextType, discoveredSet.EntityType), policy
                        => policy.RequireAssertion(context => callback(new(DbContextAction.EditEntity, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User) ||
                                                              callback(new(DbContextAction.DeleteEntity, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
                 }
@@ -58,13 +58,4 @@ public class CoreBlazorOptionsBuilder
         });
         return this;
     }
-}
-public static class Identifiers
-{
-    public const string Info = nameof(Info);
-    public const string Read = nameof(Read);
-    public const string Create = nameof(Create);
-    public const string Edit = nameof(Edit);
-    public const string Delete = nameof(Delete);
-    public const string EditOrDelete = nameof(EditOrDelete);
 }

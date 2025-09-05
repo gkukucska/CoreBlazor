@@ -1,4 +1,5 @@
-﻿@using CoreBlazor.Configuration
+﻿@using CoreBlazor.Authorization
+@using CoreBlazor.Configuration
 @using CoreBlazor.Utils
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
@@ -9,24 +10,31 @@
 @implements IAsyncDisposable
 @inject IDbContextFactory<TContext> ContextFactory
 @inject NavigationManager NavigationManager
-<EditForm Model="Entity" OnValidSubmit="OnSaveChanges">
-    <DataAnnotationsValidator />
-    <PropertyEditorComponent TContext="TContext" TEntity="TEntity" Entity="@Entity" />
-    <AuthorizeView Policy="@($"{typeof(TContext).Name}/{typeof(TEntity).Name}/{Identifiers.Edit}")" Context="AuthorizedContext">
-        <Authorized Context="AuthorizedContext">
-            <Button Color="ButtonColor.Primary" Type="ButtonType.Submit" Class="m-1">Save Changes</Button>
-        </Authorized>
-    </AuthorizeView>
-    <AuthorizeView Policy="@($"{typeof(TContext).Name}/{typeof(TEntity).Name}/{Identifiers.Delete}")" Context="AuthorizedContext">
-        <Authorized Context="AuthorizedContext">
-            <Button Color="ButtonColor.Danger" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Delete/{EntityId}")" Class="m-1">
-                <Icon Name="IconName.ExclamationDiamondFill" />
-                Delete
-            </Button>
-        </Authorized>
-    </AuthorizeView>
-    <Button Color="ButtonColor.Link" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}")" Class="m-1">Go back</Button>
-</EditForm>
+<AuthorizeView Policy="@(Policies<TContext,TEntity>.CanEditOrDelete)" Context="CanEditOrDeleteContext">
+    <Authorized Context="CanEditOrDeleteContext">
+        <EditForm Model="Entity" OnValidSubmit="OnSaveChanges">
+            <DataAnnotationsValidator />
+            <PropertyEditorComponent TContext="TContext" TEntity="TEntity" Entity="@Entity" />
+            <AuthorizeView Policy="@(Policies<TContext, TEntity>.CanEdit)" Context="AuthorizeContext">
+                <Authorized Context="AuthorizeContext">
+                    <Button Color="ButtonColor.Primary" Type="ButtonType.Submit" Class="m-1">Save Changes</Button>
+                </Authorized>
+            </AuthorizeView>
+            <AuthorizeView Policy="@(Policies<TContext, TEntity>.CanDelete)" Context="AuthorizeContext">
+                <Authorized Context="AuthorizeContext">
+                    <Button Color="ButtonColor.Danger" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Delete/{EntityId}")" Class="m-1">
+                        <Icon Name="IconName.ExclamationDiamondFill" />
+                        Delete
+                    </Button>
+                </Authorized>
+            </AuthorizeView>
+            <Button Color="ButtonColor.Link" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}")" Class="m-1">Go back</Button>
+        </EditForm>
+    </Authorized>
+    <NotAuthorized>
+        <h3>You are not authorized to view this page.</h3>
+    </NotAuthorized>
+</AuthorizeView>
 @code{
     private TContext _context;
 

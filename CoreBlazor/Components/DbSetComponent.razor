@@ -1,5 +1,6 @@
 ﻿@using System.Linq.Expressions
 @using System.Reflection
+@using CoreBlazor.Authorization
 @using CoreBlazor.Configuration
 @using CoreBlazor.Interfaces
 @using CoreBlazor.Utils
@@ -13,18 +14,25 @@
 @inject IDbContextFactory<TContext> ContextFactory;
 @inject NavigationManager NavigationManager;
 @inject CoreBlazorDbSetOptions<TContext,TEntity>? DbSetOptions;
-<AuthorizeView Policy="@($"{typeof(TContext).Name}/{typeof(TEntity).Name}/{Identifiers.Create}")">
-    <Authorized>
-        <Button Color="ButtonColor.Primary" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Create")">
-            Add New Entity
-        </Button>
+<AuthorizeView Policy="@(Policies<TContext,TEntity>.CanRead)" Context="CanReadContext">
+    <Authorized Context="CanReadContext">
+        <AuthorizeView Policy="@(Policies<TContext, TEntity>.CanCreate)">
+            <Authorized>
+                <Button Color="ButtonColor.Primary" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Create")">
+                    Add New Entity
+                </Button>
+            </Authorized>
+        </AuthorizeView>
+        <AuthorizeView Policy="@(Policies<TContext, TEntity>.CanEditOrDelete)" Context="AuthorizeContext">
+            <Authorized Context="AuthorizeContext">
+                <DbSetGridComponent TContext="TContext" TEntity="TEntity" AllowRowClick="true" />
+            </Authorized>
+            <NotAuthorized>
+                <DbSetGridComponent TContext="TContext" TEntity="TEntity" AllowRowClick="false" />
+            </NotAuthorized>
+        </AuthorizeView>
     </Authorized>
-</AuthorizeView>
-<AuthorizeView Policy="@($"{typeof(TContext).Name}/{typeof(TEntity).Name}/{Identifiers.EditOrDelete}")" Context="AuthorizeContext">
-    <Authorized Context="AuthorizeContext">
-        <DbSetGridComponent TContext="TContext" TEntity="TEntity" AllowRowClick="true"/>
-    </Authorized>
-    <NotAuthorized>
-        <DbSetGridComponent TContext="TContext" TEntity="TEntity" AllowRowClick="false"  />
+    <NotAuthorized Context="CanReadContext">
+        <h3>You are not authorized to view this page.</h3>
     </NotAuthorized>
 </AuthorizeView>

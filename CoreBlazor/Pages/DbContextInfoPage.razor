@@ -3,14 +3,8 @@
 @using CoreBlazor.Configuration
 @using Microsoft.AspNetCore.Components.Authorization
 @inject IEnumerable<DiscoveredContext> DiscoveredContexts
-<AuthorizeView Policy="@($"{DbContext}/{Identifiers.Info}")">
-    <Authorized>
-        <DynamicComponent Type="@ComponentType" />
-    </Authorized>
-    <NotAuthorized>
-        <h3>You are not authorized to view this page.</h3>
-    </NotAuthorized>
-</AuthorizeView>
+
+<DynamicComponent Type="@ComponentType" />
 
 @code {
     [Parameter]

@@ -35,7 +35,7 @@ public class CoreBlazorDbContextOptionsBuilder<TContext> where TContext : DbCont
         {
             throw new ArgumentException("Property accessor must be a simple member expression", nameof(propertyAccessor));
         }
-        var setOptionsBuilder = new CoreBlazorDbSetOptionsBuilder<TContext, TEntity>();
+        var setOptionsBuilder = new CoreBlazorDbSetOptionsBuilder<TContext, TEntity>(Services);
         optionsBuilder(setOptionsBuilder);
         Services.AddSingleton(setOptionsBuilder.Options as CoreBlazorDbSetOptions<TContext, TEntity>);
         return this;
@@ -51,7 +51,7 @@ public class CoreBlazorDbContextOptionsBuilder<TContext> where TContext : DbCont
 
     public CoreBlazorDbContextOptionsBuilder<TContext> ConfigureSet<TEntity>(Action<CoreBlazorDbSetOptionsBuilder<TContext, TEntity>> optionsBuilder) where TEntity : class
     {
-        var setOptionsBuilder = new CoreBlazorDbSetOptionsBuilder<TContext, TEntity>();
+        var setOptionsBuilder = new CoreBlazorDbSetOptionsBuilder<TContext, TEntity>(Services);
         optionsBuilder(setOptionsBuilder);
         Services.AddSingleton(setOptionsBuilder.Options as CoreBlazorDbSetOptions<TContext, TEntity>);
         return this;

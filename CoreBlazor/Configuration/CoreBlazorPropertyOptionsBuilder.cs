@@ -1,6 +1,7 @@
 using CoreBlazor.Interfaces;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Claims;
 
 namespace CoreBlazor.Configuration;
 
@@ -93,5 +94,30 @@ public class CoreBlazorPropertyOptionsBuilder<TEntity, TProperty> where TEntity 
     public CoreBlazorDbSetOptionsBuilder<TEntity> WithTitle(string title)
     {
         return OptionsBuilder.WithTitle(title);
+    }
+
+    public CoreBlazorPropertyOptionsBuilder<TEntity, TProperty> UserCanReadIf(Predicate<ClaimsPrincipal> predicate)
+    {
+        OptionsBuilder.UserCanReadIf(predicate);
+        return this;
+    }
+
+    public CoreBlazorPropertyOptionsBuilder<TEntity, TProperty> UserCanCreateIf(Predicate<ClaimsPrincipal> predicate)
+    {
+        OptionsBuilder.UserCanCreateIf(predicate);
+        return this;
+    }
+
+    public CoreBlazorPropertyOptionsBuilder<TEntity, TProperty> UserCanEditIf(Predicate<ClaimsPrincipal> predicate)
+    {
+        OptionsBuilder.UserCanEditIf(predicate);
+        return this;
+    }
+
+    public CoreBlazorPropertyOptionsBuilder<TEntity, TProperty> UserCanDeleteIf(Predicate<ClaimsPrincipal> predicate)
+    {
+
+        OptionsBuilder.UserCanDeleteIf(predicate);
+        return this;
     }
 }

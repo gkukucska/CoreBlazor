@@ -1,4 +1,6 @@
-﻿@using CoreBlazor.Utils
+﻿@using CoreBlazor.Authorization
+@using CoreBlazor.Utils
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.DependencyInjection
 @using System.Linq.Expressions
@@ -7,15 +9,22 @@
 @implements IAsyncDisposable
 @inject IDbContextFactory<TContext> ContextFactory
 @inject NavigationManager NavigationManager
-<DbContextInfoComponent TContext="TContext" />
-<EditForm Model="Entity" OnSubmit="OnSaveChanges">
-    <PropertyEditorComponent TContext="TContext" TEntity="TEntity" Entity="Entity" IsDisabled="true" />
-    <Button Color="ButtonColor.Danger" Type="ButtonType.Submit" Class="m-1">
-        <Icon Name="IconName.ExclamationDiamondFill"/>
-        Confirm deletion
-    </Button>
-    <Button Color="ButtonColor.Link" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Edit/{EntityId}")" Class="m-1">Go back</Button>
-</EditForm>
+<AuthorizeView Policy="@(Policies<TContext,TEntity>.CanDelete)" Context="AuthorizeContext">
+    <Authorized Context="AuthorizeContext">
+        <DbContextInfoComponent TContext="TContext" />
+        <EditForm Model="Entity" OnSubmit="OnSaveChanges">
+            <PropertyEditorComponent TContext="TContext" TEntity="TEntity" Entity="Entity" IsDisabled="true" />
+            <Button Color="ButtonColor.Danger" Type="ButtonType.Submit" Class="m-1">
+                <Icon Name="IconName.ExclamationDiamondFill" />
+                Confirm deletion
+            </Button>
+            <Button Color="ButtonColor.Link" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Edit/{EntityId}")" Class="m-1">Go back</Button>
+        </EditForm>
+    </Authorized>
+    <NotAuthorized>
+        <h3>You are not authorized to view this page.</h3>
+    </NotAuthorized>
+</AuthorizeView>
 @code {
     private TContext _context;
 

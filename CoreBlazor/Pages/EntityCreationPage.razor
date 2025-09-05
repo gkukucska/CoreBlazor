@@ -4,14 +4,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject IEnumerable<DiscoveredContext> DiscoveredContexts
 
-<AuthorizeView Policy="@($"{DbContext}/{DbSet}/{Identifiers.Create}")">
-    <Authorized>
-        <DynamicComponent Type="@ComponentType" Parameters="@Parameters"/>
-    </Authorized>
-    <NotAuthorized>
-        <h3>You are not authorized to view this page.</h3>
-    </NotAuthorized>
-</AuthorizeView>
+<DynamicComponent Type="@ComponentType" Parameters="@Parameters" />
 
 @code {
     [Parameter]
