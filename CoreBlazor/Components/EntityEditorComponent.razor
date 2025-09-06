@@ -10,8 +10,8 @@
 @implements IAsyncDisposable
 @inject IDbContextFactory<TContext> ContextFactory
 @inject NavigationManager NavigationManager
-<AuthorizeView Policy="@(Policies<TContext,TEntity>.CanEditOrDelete)" Context="CanEditOrDeleteContext">
-    <Authorized Context="CanEditOrDeleteContext">
+<AuthorizeView Policy="@(Policies<TContext,TEntity>.CanEdit)" Context="CanEditContext">
+    <Authorized Context="CanEditContext">
         <EditForm Model="Entity" OnValidSubmit="OnSaveChanges">
             <DataAnnotationsValidator />
             <PropertyEditorComponent TContext="TContext" TEntity="TEntity" Entity="@Entity" />

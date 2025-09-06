@@ -1,7 +1,9 @@
+using CoreBlazor.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Claims;
 
 namespace CoreBlazor.Configuration;
 
@@ -71,5 +73,15 @@ public class CoreBlazorDbContextOptionsBuilder<TContext> where TContext : DbCont
     public CoreBlazorOptionsBuilder ConfigureContext(CoreBlazorDbContextOptions<TContext> options)
     {
         return CoreBlazorOptionsBuilder.ConfigureContext(options);
+    }
+
+    public CoreBlazorDbContextOptionsBuilder<TContext> UserCanReadIf(Predicate<ClaimsPrincipal> predicate)
+    {
+        Services.AddAuthorizationCore(options =>
+        {
+            options.AddPolicy(Policies.CanReadInfo(typeof(TContext)), policy
+                => policy.RequireAssertion(context => predicate(context.User)));
+        });
+        return this;
     }
 }

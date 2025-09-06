@@ -50,9 +50,6 @@ public class CoreBlazorOptionsBuilder
                        => policy.RequireAssertion(context => callback(new(DbContextAction.EditEntity, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
                     options.AddPolicy(Policies.CanDelete(discoveredContext.ContextType, discoveredSet.EntityType), policy
                        => policy.RequireAssertion(context => callback(new(DbContextAction.DeleteEntity, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
-                    options.AddPolicy(Policies.CanEditOrDelete(discoveredContext.ContextType, discoveredSet.EntityType), policy
-                       => policy.RequireAssertion(context => callback(new(DbContextAction.EditEntity, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User) ||
-                                                             callback(new(DbContextAction.DeleteEntity, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
                 }
             }
         });

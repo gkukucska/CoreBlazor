@@ -23,7 +23,7 @@
                 </Button>
             </Authorized>
         </AuthorizeView>
-        <AuthorizeView Policy="@(Policies<TContext, TEntity>.CanEditOrDelete)" Context="AuthorizeContext">
+        <AuthorizeView Policy="@(Policies<TContext, TEntity>.CanEdit)" Context="AuthorizeContext">
             <Authorized Context="AuthorizeContext">
                 <DbSetGridComponent TContext="TContext" TEntity="TEntity" AllowRowClick="true" />
             </Authorized>

@@ -1,0 +1,49 @@
+﻿@using BlazorBootstrap
+@inject DemoAuthenticationStateProvider AuthStateProvider;
+@if (!AuthStateProvider.IsSignedIn)
+{
+    <Button onclick="@(() => OnSignIn())" Color="ButtonColor.Primary" Class="m-2">
+        Sign In
+    </Button>
+    <Dropdown>
+        <DropdownToggleButton>@(CustomUser?.Name ?? "Select user")</DropdownToggleButton>
+        <DropdownMenu>
+            <DropdownItem Text="@nameof(CustomUser.Admin)" onclick="@(() => SetUser(CustomUser.Admin))">
+                @nameof(CustomUser.Admin)
+            </DropdownItem>
+            <DropdownItem Text="@nameof(CustomUser.Engineer)" onclick="@(() => SetUser(CustomUser.Engineer))">
+                @nameof(CustomUser.Engineer)
+            </DropdownItem>
+            <DropdownItem Text="@nameof(CustomUser.Operator)" onclick="@(() => SetUser(CustomUser.Operator))">
+                @nameof(CustomUser.Operator)
+            </DropdownItem>
+        </DropdownMenu>
+    </Dropdown>
+}
+else
+{
+    <Button onclick="@(() => OnSignOut())" Color="ButtonColor.Primary" Class="m-2">
+        Log out
+    </Button>
+    @AuthStateProvider.CurrentUser!.Name
+}
+@code {
+    public CustomUser? CustomUser { get; set; }
+
+
+    public void OnSignIn()
+    {
+        AuthStateProvider.SignIn(CustomUser);
+        StateHasChanged();
+    }
+    public void OnSignOut()
+    {
+        AuthStateProvider.SignOut();
+        StateHasChanged();
+    }
+
+    public void SetUser(CustomUser user)
+    {
+        CustomUser = user;
+    }
+}

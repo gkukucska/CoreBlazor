@@ -6,7 +6,10 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @inject IAuthorizationService AuthorizationService
-<Sidebar2 Title="CoreBlazor"
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@implements IDisposable
+<Sidebar Title="CoreBlazor"
+         @ref="_sidebar"
          BadgeText="1.0.0"
          DataProvider="SidebarDataProvider"
          WidthUnit="Unit.Px" />
@@ -15,11 +18,24 @@
     private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
     private IEnumerable<NavItem>? _navItems;
+    private Sidebar _sidebar;
 
-    private async Task<Sidebar2DataProviderResult> SidebarDataProvider(Sidebar2DataProviderRequest request)
+    protected override void OnParametersSet()
+    {
+        AuthenticationStateProvider.AuthenticationStateChanged+= AuthenticationStateChanged;
+        base.OnParametersSet();
+    }
+
+    private async void AuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        await task;
+        await _sidebar.RefreshDataAsync();
+    }
+
+    private async Task<SidebarDataProviderResult> SidebarDataProvider(SidebarDataProviderRequest request)
     {
         var user = (await AuthenticationStateTask).User;
-        _navItems ??= await GetNavItems(user).ToListAsync();
+        _navItems = await GetNavItems(user).ToListAsync();
 
         return await Task.FromResult(request.ApplyTo(_navItems));
     }
@@ -57,7 +73,7 @@
                 {
                     continue;
                 }
-                ConfigurationHelper.DisplayTitles.TryGetValue(set.EntityType.Name, out var setTitle);
+                ConfigurationHelper.DisplayTitles.TryGetValue(context.ContextType.Name + set.EntityType.Name, out var setTitle);
                 setTitle = setTitle ?? set.EntityType.Name;
                 yield return new NavItem()
                 {
@@ -69,5 +85,10 @@
                 };
             }
         }
+    }
+
+    public void Dispose()
+    {
+        AuthenticationStateProvider.AuthenticationStateChanged -= AuthenticationStateChanged;
     }
 }

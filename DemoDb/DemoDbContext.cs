@@ -46,3 +46,5 @@ public class DemoDbContext : DbContext
 
     }
 }
+
+public class SensitiveDbContext: DemoDbContext;
