@@ -29,8 +29,8 @@ namespace CoreBlazorDemo.Authentication
     {
         public required string Name { get; set; }
         public static CustomUser Admin { get; } = new() { Name = nameof(Admin) };
-        public static CustomUser Engineer { get; } = new() { Name = nameof(Engineer) };
-        public static CustomUser Operator { get; } = new() { Name = nameof(Operator) };
+        public static CustomUser Editor { get; } = new() { Name = nameof(Editor) };
+        public static CustomUser Reader { get; } = new() { Name = nameof(Reader) };
         private CustomUser(): base(new ClaimsIdentity() { }) {
         }
     }
