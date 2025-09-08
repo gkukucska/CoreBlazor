@@ -10,13 +10,13 @@ namespace CoreBlazorDemo.Authentication
         public void SignIn(CustomUser? user)
         {
             CurrentUser = user;
-            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(CurrentUser)));
+            NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 
         public void SignOut()
         {
             CurrentUser = null;
-            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(new ClaimsPrincipal())));
+            NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 
         public override Task<AuthenticationState> GetAuthenticationStateAsync()
