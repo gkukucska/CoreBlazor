@@ -12,6 +12,7 @@
 @typeparam TEntity where TEntity : class
 @inject NavigationManager NavigationManager;
 @inject IDbContextFactory<TContext> ContextFactory;
+@inject INavigationPathProvider NavigationPathProvider;
 @inject CoreBlazorDbSetOptions<TContext,TEntity>? DbSetOptions;
 
 <Grid TItem="TEntity" DataProvider="GetEntities"
@@ -97,7 +98,7 @@
     private Task GoToEntityEditorPage(GridRowEventArgs<TEntity> args)
     {
         var primaryKey = _context.GetPrimaryKey<TEntity>();
-        NavigationManager.NavigateTo($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Edit/{primaryKey.PropertyInfo!.GetValue(args.Item)}");
+        NavigationManager.NavigateTo(NavigationPathProvider.GetPathToEditEntity(typeof(TContext).Name, typeof(TEntity).Name, primaryKey.PropertyInfo!.GetValue(args.Item).ToString()));
         return Task.CompletedTask;
     }
 

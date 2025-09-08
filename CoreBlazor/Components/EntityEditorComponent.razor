@@ -1,5 +1,6 @@
 ﻿@using CoreBlazor.Authorization
 @using CoreBlazor.Configuration
+@using CoreBlazor.Interfaces
 @using CoreBlazor.Utils
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
@@ -10,6 +11,7 @@
 @implements IAsyncDisposable
 @inject IDbContextFactory<TContext> ContextFactory
 @inject NavigationManager NavigationManager
+@inject INavigationPathProvider NavigationPathProvider
 <AuthorizeView Policy="@(Policies<TContext,TEntity>.CanEdit)" Context="CanEditContext">
     <Authorized Context="CanEditContext">
         <EditForm Model="Entity" OnValidSubmit="OnSaveChanges">
@@ -22,13 +24,13 @@
             </AuthorizeView>
             <AuthorizeView Policy="@(Policies<TContext, TEntity>.CanDelete)" Context="AuthorizeContext">
                 <Authorized Context="AuthorizeContext">
-                    <Button Color="ButtonColor.Danger" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Delete/{EntityId}")" Class="m-1">
+                    <Button Color="ButtonColor.Danger" Type="ButtonType.Link" To="@NavigationPathProvider.GetPathToDeleteEntity(typeof(TContext).Name, typeof(TEntity).Name,EntityId)" Class="m-1">
                         <Icon Name="IconName.ExclamationDiamondFill" />
                         Delete
                     </Button>
                 </Authorized>
             </AuthorizeView>
-            <Button Color="ButtonColor.Link" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}")" Class="m-1">Go back</Button>
+            <Button Color="ButtonColor.Link" Type="ButtonType.Link" To="@NavigationPathProvider.GetPathToReadEntities(typeof(TContext).Name, typeof(TEntity).Name)" Class="m-1">Go back</Button>
         </EditForm>
     </Authorized>
     <NotAuthorized>
@@ -69,6 +71,6 @@
         _context.Attach(Entity);
         _context.Update(Entity);
         await _context.SaveChangesAsync();
-        NavigationManager.NavigateTo($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}");
+        NavigationManager.NavigateTo(NavigationPathProvider.GetPathToReadEntities(typeof(TContext).Name, typeof(TEntity).Name));
     }
 }

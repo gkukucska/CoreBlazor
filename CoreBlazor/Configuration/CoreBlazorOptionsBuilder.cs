@@ -1,6 +1,9 @@
 using CoreBlazor.Authorization;
+using CoreBlazor.Interfaces;
+using CoreBlazor.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Security.Claims;
 
 namespace CoreBlazor.Configuration;
@@ -30,26 +33,27 @@ public class CoreBlazorOptionsBuilder
         return this;
     }
 
-    public CoreBlazorOptionsBuilder WithAuthorizationCallback(Func<AuthorizationInfo,ClaimsPrincipal,bool> callback)
+    public CoreBlazorOptionsBuilder WithAuthorizationCallback(Func<ActionInfo,ClaimsPrincipal,bool> callback)
     {
 
         Services.AddCascadingAuthenticationState();
+        Services.TryAddSingleton<INavigationPathProvider, DefaultNavigationPathProvider>();
         Services.AddAuthorizationCore(options =>
         {
             foreach (var discoveredContext in _contexts)
             {
                 options.AddPolicy(Policies.CanReadInfo(discoveredContext.ContextType), policy 
-                    => policy.RequireAssertion(context => callback(new(DbContextAction.ReadInfo, discoveredContext.ContextType.Name,string.Empty),context.User)));
+                    => policy.RequireAssertion(context => callback(new(DbAction.ReadInfo, discoveredContext.ContextType.Name,string.Empty),context.User)));
                 foreach (var discoveredSet in discoveredContext.Sets)
                 {
                     options.AddPolicy(Policies.CanRead(discoveredContext.ContextType, discoveredSet.EntityType), policy
-                       => policy.RequireAssertion(context => callback(new(DbContextAction.ReadEntities, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
+                       => policy.RequireAssertion(context => callback(new(DbAction.ReadEntities, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
                     options.AddPolicy(Policies.CanCreate(discoveredContext.ContextType, discoveredSet.EntityType), policy
-                       => policy.RequireAssertion(context => callback(new(DbContextAction.CreateEntity, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
+                       => policy.RequireAssertion(context => callback(new(DbAction.CreateEntity, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
                     options.AddPolicy(Policies.CanEdit(discoveredContext.ContextType, discoveredSet.EntityType), policy
-                       => policy.RequireAssertion(context => callback(new(DbContextAction.EditEntity, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
+                       => policy.RequireAssertion(context => callback(new(DbAction.EditEntity, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
                     options.AddPolicy(Policies.CanDelete(discoveredContext.ContextType, discoveredSet.EntityType), policy
-                       => policy.RequireAssertion(context => callback(new(DbContextAction.DeleteEntity, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
+                       => policy.RequireAssertion(context => callback(new(DbAction.DeleteEntity, discoveredContext.ContextType.Name, discoveredSet.EntityType.Name), context.User)));
                 }
             }
         });

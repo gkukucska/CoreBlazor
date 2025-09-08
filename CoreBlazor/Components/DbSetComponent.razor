@@ -14,11 +14,12 @@
 @inject IDbContextFactory<TContext> ContextFactory;
 @inject NavigationManager NavigationManager;
 @inject CoreBlazorDbSetOptions<TContext,TEntity>? DbSetOptions;
+@inject INavigationPathProvider NavigationPathProvider; 
 <AuthorizeView Policy="@(Policies<TContext,TEntity>.CanRead)" Context="CanReadContext">
     <Authorized Context="CanReadContext">
         <AuthorizeView Policy="@(Policies<TContext, TEntity>.CanCreate)">
             <Authorized>
-                <Button Color="ButtonColor.Primary" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Create")">
+                <Button Color="ButtonColor.Primary" Type="ButtonType.Link" To="@NavigationPathProvider.GetPathToCreateEntity(typeof(TContext).Name, typeof(TEntity).Name)">
                     Add New Entity
                 </Button>
             </Authorized>

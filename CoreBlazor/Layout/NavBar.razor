@@ -2,10 +2,13 @@
 @using BlazorBootstrap
 @using CoreBlazor.Authorization
 @using CoreBlazor.Configuration
+@using CoreBlazor.Interfaces
+@using CoreBlazor.Utils
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @inject IAuthorizationService AuthorizationService
+@inject INavigationPathProvider NavigationPathProvider
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @implements IDisposable
 <Sidebar Title="CoreBlazor"
@@ -62,7 +65,7 @@
                 Text = "Info",
                 IconName = IconName.InfoCircle,
                 Id = context.ContextType.Name+"info",
-                Href = $"DbContext/{context.ContextType.Name}/Info",
+                Href =  NavigationPathProvider.GetPathToReadDbContextInfo(context.ContextType.Name),
                 ParentId = context.ContextType.Name
             };
 
@@ -80,7 +83,7 @@
                     Text = setTitle,
                     IconName = IconName.Table,
                     Id = context.ContextType.Name+ set.EntityType.Name,
-                    Href = $"DbContext/{context.ContextType.Name}/DbSet/{set.EntityType.Name}",
+                    Href = NavigationPathProvider.GetPathToReadEntities(context.ContextType.Name, set.EntityType.Name),
                     ParentId = context.ContextType.Name
                 };
             }

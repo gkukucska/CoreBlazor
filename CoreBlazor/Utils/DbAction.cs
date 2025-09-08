@@ -1,6 +1,6 @@
-namespace CoreBlazor.Authorization;
+namespace CoreBlazor.Utils;
 
-public enum DbContextAction
+public enum DbAction
 {
     ReadInfo,
     ReadEntities,

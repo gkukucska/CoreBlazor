@@ -1,4 +1,5 @@
 ﻿@using CoreBlazor.Authorization
+@using CoreBlazor.Interfaces
 @using CoreBlazor.Utils
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
@@ -8,6 +9,7 @@
 @typeparam TEntity where TEntity : class
 @implements IAsyncDisposable
 @inject IDbContextFactory<TContext> ContextFactory
+@inject INavigationPathProvider NavigationPathProvider
 @inject NavigationManager NavigationManager
 <AuthorizeView Policy="@(Policies<TContext,TEntity>.CanDelete)" Context="AuthorizeContext">
     <Authorized Context="AuthorizeContext">
@@ -18,7 +20,7 @@
                 <Icon Name="IconName.ExclamationDiamondFill" />
                 Confirm deletion
             </Button>
-            <Button Color="ButtonColor.Link" Type="ButtonType.Link" To="@($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}/Edit/{EntityId}")" Class="m-1">Go back</Button>
+            <Button Color="ButtonColor.Link" Type="ButtonType.Link" To="@NavigationPathProvider.GetPathToReadEntities(typeof(TContext).Name, typeof(TEntity).Name)" Class="m-1">Go back</Button>
         </EditForm>
     </Authorized>
     <NotAuthorized>
@@ -56,6 +58,6 @@
         }
         _context.Remove(Entity);
         await _context.SaveChangesAsync();
-        NavigationManager.NavigateTo($"/DbContext/{typeof(TContext).Name}/DbSet/{typeof(TEntity).Name}");
+        NavigationManager.NavigateTo(NavigationPathProvider.GetPathToReadEntities(typeof(TContext).Name, typeof(TEntity).Name));
     }
 }
