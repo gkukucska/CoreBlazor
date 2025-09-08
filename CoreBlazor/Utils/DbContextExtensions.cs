@@ -50,12 +50,19 @@ public static class DbContextExtensions
         return foreignKeys.Select(fk=> fk.Properties[0].PropertyInfo).Any(fk=> fk.Name == propertyInfo.Name && fk.PropertyType == propertyInfo.PropertyType);
     }
 
-    public static IQueryable<TEntity> DbSetWithDisplayableNavigations<TEntity>(this DbContext context) where TEntity : class
-        => context.GetNavigations<TEntity>().Where(x => x.PropertyInfo?.IsDisplayable() ?? false)
-        .Aggregate(context.Set<TEntity>().AsQueryable(), (query, navigation) => query.Include(navigation.Name));
+    public static IQueryable<TEntity> DbSetWithDisplayableNavigations<TEntity>(this DbContext context, bool useSplitQueries) where TEntity : class
+    {
+        var query= context.GetNavigations<TEntity>().Where(x => x.PropertyInfo?.IsDisplayable() ?? false)
+            .Aggregate(context.Set<TEntity>().AsQueryable(), (query, navigation) => query.Include(navigation.Name));
+        if (useSplitQueries)
+        {
+            query = query.AsSplitQuery();
+        }
+        return query;
+    }
 
-    public async static Task<GridDataProviderResult<TEntity>> ApplyTo<TEntity>(this DbContext context, GridDataProviderRequest<TEntity> request) where TEntity : class
-        => await context.DbSetWithDisplayableNavigations<TEntity>()
+    public async static Task<GridDataProviderResult<TEntity>> ApplyTo<TEntity>(this DbContext context, GridDataProviderRequest<TEntity> request, bool useSplitQueries) where TEntity : class
+        => await context.DbSetWithDisplayableNavigations<TEntity>(useSplitQueries)
                                   .AsNoTracking()
                                   .WithFiltering(request.Filters)
                                   .WithSorting(request.Sorting)

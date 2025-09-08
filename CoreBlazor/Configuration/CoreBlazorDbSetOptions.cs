@@ -16,6 +16,8 @@ public abstract class CoreBlazorDbSetOptions<TEntity> where TEntity : class
     public List<KeyValuePair<PropertyInfo, Type>> DisplayTypes { get; set; } = [];
 
     public List<KeyValuePair<PropertyInfo, Type>> EditingTypes { get; set; } = [];
+
+    public bool UseSplitQueries { get; set; }
 }
 
 public class CoreBlazorDbSetOptions<TContext, TEntity> : CoreBlazorDbSetOptions<TEntity> where TContext : DbContext where TEntity : class;

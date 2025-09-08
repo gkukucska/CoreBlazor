@@ -1,4 +1,5 @@
 ﻿@using CoreBlazor.Authorization
+@using CoreBlazor.Configuration
 @using CoreBlazor.Interfaces
 @using CoreBlazor.Utils
 @using Microsoft.AspNetCore.Components.Authorization
@@ -11,6 +12,7 @@
 @inject IDbContextFactory<TContext> ContextFactory
 @inject INavigationPathProvider NavigationPathProvider
 @inject NavigationManager NavigationManager
+@inject CoreBlazorDbSetOptions<TContext,TEntity>? DbSetOptions 
 <AuthorizeView Policy="@(Policies<TContext,TEntity>.CanDelete)" Context="AuthorizeContext">
     <Authorized Context="AuthorizeContext">
         <DbContextInfoComponent TContext="TContext" />
@@ -38,7 +40,7 @@
     protected override async Task OnParametersSetAsync()
     {
         _context = await ContextFactory.CreateDbContextAsync();
-        var set = _context.DbSetWithDisplayableNavigations<TEntity>();
+        var set = _context.DbSetWithDisplayableNavigations<TEntity>(DbSetOptions.UseSplitQueries);
         var primarykey = _context.Model.FindEntityType(typeof(TEntity))!.FindPrimaryKey().Properties.Single().PropertyInfo;
         ParameterExpression parameterExpression = Expression.Parameter(typeof(TEntity));
         var property = Expression.Property(parameterExpression, primarykey.Name);

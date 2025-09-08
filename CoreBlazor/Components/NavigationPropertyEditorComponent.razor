@@ -79,7 +79,7 @@
     }
 
     private async Task<GridDataProviderResult<TProperty>> GetEntities(GridDataProviderRequest<TProperty> request)
-        => await _context.ApplyTo<TProperty>(request);
+        => await _context.ApplyTo<TProperty>(request, DbSetOptions.UseSplitQueries);
 
     private bool IsFilterable(PropertyInfo prop)
     {

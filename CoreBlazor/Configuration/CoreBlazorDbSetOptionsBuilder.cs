@@ -55,7 +55,13 @@ public abstract class CoreBlazorDbSetOptionsBuilder<TEntity> where TEntity : cla
     public CoreBlazorDbSetOptionsBuilder<TEntity> WithTitle(string title)
     {
         Options.DisplayTitle = title;
-        ConfigurationHelper.DisplayTitles.Add(_contextType.Name+_entityType.Name, title);
+        ConfigurationHelper.DisplayTitles.Add(_contextType.Name + _entityType.Name, title);
+        return this;
+    }
+
+    public CoreBlazorDbSetOptionsBuilder<TEntity> WithSplitQueries(bool useSplitQueries=true)
+    {
+        Options.UseSplitQueries = useSplitQueries;
         return this;
     }
 

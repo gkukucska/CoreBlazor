@@ -64,7 +64,7 @@
         => typeof(NavigationPropertyColumnViewerComponent<,,>).MakeGenericType(typeof(TContext), typeof(TEntity), propertyInfo.PropertyType);
 
     private async Task<GridDataProviderResult<TEntity>> GetEntities(GridDataProviderRequest<TEntity> request)
-        => await _context.ApplyTo<TEntity>(request)
+        => await _context.ApplyTo<TEntity>(request, DbSetOptions.UseSplitQueries)
                          .ConfigureAwait(false);
 
     private static Dictionary<string, object> CreateColumnParameters(TEntity entity, string propertyName)
