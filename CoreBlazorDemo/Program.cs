@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddBlazorBootstrap()
     .AddAuthorization()
     .AddScoped<DemoAuthenticationStateProvider>()
-    .AddScoped<AuthenticationStateProvider, DemoAuthenticationStateProvider>(sp=> sp.GetRequiredService<DemoAuthenticationStateProvider>())
+    .AddScoped<AuthenticationStateProvider, DemoAuthenticationStateProvider>(sp => sp.GetRequiredService<DemoAuthenticationStateProvider>())
     .AddDbContextFactory<DemoDbContext>()
     .AddDbContextFactory<SensitiveDbContext>()
     .AddCoreBlazor().ConfigureContext<DemoDbContext>(options =>
@@ -30,9 +30,7 @@ builder.Services.AddBlazorBootstrap()
                                                                                                     .WithEntityDisplay<ImageDataDisplayComponent>()))
                     .ConfigureContext<SensitiveDbContext>(options =>
                         options.WithTitle("Sensitive Db")
-                               .UserCanReadIf(user 
-                               => { 
-                                   return user is CustomUser; })
+                               .UserCanReadIf(user => { return user is CustomUser; })
                                .ConfigureSet<Job>(jobOptions => jobOptions.WithEntityDisplay<JobDisplayComponent>()
                                                                           .ConfigureProperty(job => job.Id).Hidden()
                                                                           .WithTitle("Jobs")
