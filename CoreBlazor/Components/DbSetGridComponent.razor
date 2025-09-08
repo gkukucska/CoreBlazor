@@ -13,8 +13,7 @@
 @inject NavigationManager NavigationManager;
 @inject IDbContextFactory<TContext> ContextFactory;
 @inject INavigationPathProvider NavigationPathProvider;
-@inject CoreBlazorDbSetOptions<TContext,TEntity>? DbSetOptions;
-
+@inject IServiceProvider ServiceProvider;
 <Grid TItem="TEntity" DataProvider="GetEntities"
       Class="table table-hover table-bordered table-striped"
       AllowFiltering="true"
@@ -49,6 +48,8 @@
 </Grid>
 @code {
 
+    public CoreBlazorDbSetOptions<TContext, TEntity>? DbSetOptions { get; set; }
+
     [Parameter]
     public bool AllowRowClick { get; set; }
 
@@ -56,6 +57,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
+        DbSetOptions = ServiceProvider.GetService<CoreBlazorDbSetOptions<TContext, TEntity>>();
         _context = await ContextFactory.CreateDbContextAsync();
         await base.OnParametersSetAsync();
     }
@@ -64,7 +66,7 @@
         => typeof(NavigationPropertyColumnViewerComponent<,,>).MakeGenericType(typeof(TContext), typeof(TEntity), propertyInfo.PropertyType);
 
     private async Task<GridDataProviderResult<TEntity>> GetEntities(GridDataProviderRequest<TEntity> request)
-        => await _context.ApplyTo<TEntity>(request, DbSetOptions.UseSplitQueries)
+        => await _context.ApplyTo<TEntity>(request, DbSetOptions?.UseSplitQueries ?? false)
                          .ConfigureAwait(false);
 
     private static Dictionary<string, object> CreateColumnParameters(TEntity entity, string propertyName)

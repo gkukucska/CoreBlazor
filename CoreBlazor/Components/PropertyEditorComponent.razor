@@ -8,8 +8,8 @@
 @typeparam TContext where TContext : DbContext
 @typeparam TEntity where TEntity : class
 @implements IAsyncDisposable
-@inject CoreBlazorDbSetOptions<TContext,TEntity>? DbSetOptions;
 @inject IDbContextFactory<TContext> ContextFactory
+@inject IServiceProvider ServiceProvider
 
 @if (SelectingNavigationProperty is null)
 {
@@ -180,6 +180,8 @@ else
     private TContext _context;
     private List<INavigation> _navigations;
 
+    public CoreBlazorDbSetOptions<TContext, TEntity>? DbSetOptions { get; set; }
+
     [Parameter]
     public TEntity Entity { get; set; }
 
@@ -190,6 +192,7 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
+        DbSetOptions = ServiceProvider.GetService<CoreBlazorDbSetOptions<TContext, TEntity>>();
         _context = await ContextFactory.CreateDbContextAsync();
         _navigations = _context.GetNavigations<TEntity>().ToList();
     }

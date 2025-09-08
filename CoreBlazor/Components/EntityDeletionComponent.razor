@@ -12,7 +12,7 @@
 @inject IDbContextFactory<TContext> ContextFactory
 @inject INavigationPathProvider NavigationPathProvider
 @inject NavigationManager NavigationManager
-@inject CoreBlazorDbSetOptions<TContext,TEntity>? DbSetOptions 
+@inject IServiceProvider ServiceProvider
 <AuthorizeView Policy="@(Policies<TContext,TEntity>.CanDelete)" Context="AuthorizeContext">
     <Authorized Context="AuthorizeContext">
         <DbContextInfoComponent TContext="TContext" />
@@ -32,6 +32,8 @@
 @code {
     private TContext _context;
 
+    public CoreBlazorDbSetOptions<TContext, TEntity>? DbSetOptions { get; set; }
+
     [Parameter]
     public string EntityId { get; set; }
 
@@ -39,8 +41,9 @@
 
     protected override async Task OnParametersSetAsync()
     {
+        DbSetOptions = ServiceProvider.GetService<CoreBlazorDbSetOptions<TContext, TEntity>>();
         _context = await ContextFactory.CreateDbContextAsync();
-        var set = _context.DbSetWithDisplayableNavigations<TEntity>(DbSetOptions.UseSplitQueries);
+        var set = _context.DbSetWithDisplayableNavigations<TEntity>(DbSetOptions?.UseSplitQueries ?? false);
         var primarykey = _context.Model.FindEntityType(typeof(TEntity))!.FindPrimaryKey().Properties.Single().PropertyInfo;
         ParameterExpression parameterExpression = Expression.Parameter(typeof(TEntity));
         var property = Expression.Property(parameterExpression, primarykey.Name);

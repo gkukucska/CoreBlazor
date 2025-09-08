@@ -13,7 +13,7 @@
 @typeparam TEntity where TEntity : class
 @inject IDbContextFactory<TContext> ContextFactory;
 @inject NavigationManager NavigationManager;
-@inject CoreBlazorDbSetOptions<TContext,TEntity>? DbSetOptions;
+@inject IServiceProvider ServiceProvider;
 @inject INavigationPathProvider NavigationPathProvider; 
 <AuthorizeView Policy="@(Policies<TContext,TEntity>.CanRead)" Context="CanReadContext">
     <Authorized Context="CanReadContext">
@@ -37,3 +37,13 @@
         <h3>You are not authorized to view this page.</h3>
     </NotAuthorized>
 </AuthorizeView>
+
+@code {
+    public CoreBlazorDbSetOptions<TContext,TEntity>? DbSetOptions { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        DbSetOptions = ServiceProvider.GetService<CoreBlazorDbSetOptions<TContext, TEntity>>();
+        await base.OnParametersSetAsync();
+    }
+}

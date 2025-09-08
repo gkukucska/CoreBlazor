@@ -9,7 +9,7 @@
 @typeparam TContext where TContext : DbContext
 @implements IAsyncDisposable
 @inject IDbContextFactory<TContext> ContextFactory
-@inject CoreBlazorDbSetOptions<TContext,TProperty>? DbSetOptions
+@inject IServiceProvider ServiceProvider
 
 <Grid TItem="TProperty" DataProvider="GetEntities"
       Class="table table-hover table-bordered table-striped"
@@ -48,7 +48,10 @@
     </GridColumns>
 </Grid>
 @code {
+
     private TContext _context;
+
+    public CoreBlazorDbSetOptions<TContext, TEntity>? DbSetOptions { get; set; }
 
     [Parameter]
     public string NavigationPropertyName { get; set; }
@@ -74,12 +77,13 @@
 
     protected override async Task OnParametersSetAsync()
     {
+        DbSetOptions = ServiceProvider.GetService<CoreBlazorDbSetOptions<TContext, TEntity>>();
         _context = await ContextFactory.CreateDbContextAsync();
         await base.OnParametersSetAsync();
     }
 
     private async Task<GridDataProviderResult<TProperty>> GetEntities(GridDataProviderRequest<TProperty> request)
-        => await _context.ApplyTo<TProperty>(request, DbSetOptions.UseSplitQueries);
+        => await _context.ApplyTo<TProperty>(request, DbSetOptions?.UseSplitQueries ?? false);
 
     private bool IsFilterable(PropertyInfo prop)
     {

@@ -2,10 +2,11 @@
 @using CoreBlazor.Configuration
 @using CoreBlazor.Interfaces
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.DependencyInjection
 @typeparam TContext where TContext : DbContext
 @typeparam TEntity where TEntity : class
 @typeparam TProperty where TProperty : class
-@inject CoreBlazorDbSetOptions<TContext,TProperty>? DbSetOptions
+@inject IServiceProvider ServiceProvider
 
 @if (DbSetOptions?.ComponentDisplay is not null)
 {
@@ -23,6 +24,8 @@ else
 @code {
     private PropertyInfo _propertyInfo;
 
+    public CoreBlazorDbSetOptions<TContext, TProperty>? DbSetOptions { get; set; }
+
     [Parameter]
     public TEntity Entity { get; set; }
 
@@ -31,6 +34,7 @@ else
 
     protected override void OnParametersSet()
     {
+        DbSetOptions = ServiceProvider.GetService<CoreBlazorDbSetOptions<TContext, TProperty>>();
         _propertyInfo = typeof(TEntity).GetProperty(PropertyName, typeof(TProperty));
         base.OnParametersSet();
     }
