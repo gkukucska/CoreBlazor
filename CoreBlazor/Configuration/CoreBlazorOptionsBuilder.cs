@@ -35,9 +35,6 @@ public class CoreBlazorOptionsBuilder
 
     public CoreBlazorOptionsBuilder WithAuthorizationCallback(Func<ActionInfo,ClaimsPrincipal,bool> callback)
     {
-
-        Services.AddCascadingAuthenticationState();
-        Services.TryAddSingleton<INavigationPathProvider, DefaultNavigationPathProvider>();
         Services.AddAuthorizationCore(options =>
         {
             foreach (var discoveredContext in _contexts)

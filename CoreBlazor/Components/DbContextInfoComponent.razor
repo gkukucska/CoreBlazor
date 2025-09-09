@@ -1,9 +1,11 @@
 @using CoreBlazor.Authorization
+@using CoreBlazor.Interfaces
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.DependencyInjection
 @typeparam TContext where TContext : Microsoft.EntityFrameworkCore.DbContext
 @inject IDbContextFactory<TContext> ContextFactory
+@inject INotAuthorizedComponentTypeProvider NotAuthorizedComponentTypeProvider
 <AuthorizeView Policy="@(Policies<TContext>.CanReadInfo)">
     <Authorized>
         <table class="table table-hover table-bordered table-striped">
@@ -53,7 +55,7 @@
         </table>
     </Authorized>
     <NotAuthorized>
-        <h3>You are not authorized to view this page.</h3>
+        <DynamicComponent Type="NotAuthorizedComponentTypeProvider.GetNotAuthorizedComponentType<TContext, object>()" />
     </NotAuthorized>
 </AuthorizeView>
 @code {

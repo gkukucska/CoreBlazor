@@ -1,7 +1,9 @@
 using CoreBlazor.Configuration;
+using CoreBlazor.Interfaces;
 using CoreBlazor.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CoreBlazor;
 
@@ -9,6 +11,10 @@ public static class ServiceCollectionExtensions
 {
     public static CoreBlazorOptionsBuilder AddCoreBlazor(this IServiceCollection services)
     {
+
+        services.AddCascadingAuthenticationState();
+        services.TryAddSingleton<INavigationPathProvider, DefaultNavigationPathProvider>();
+        services.TryAddSingleton<INotAuthorizedComponentTypeProvider, DefaultNotAuthorizedComponentTypeProvider>();
         var discoveredContexts = new List<DiscoveredContext>();
         foreach (var descriptor in services.Where(x => typeof(DbContext).IsAssignableFrom(x.ServiceType)).ToList())
         {

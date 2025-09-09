@@ -13,6 +13,7 @@
 @inject INavigationPathProvider NavigationPathProvider
 @inject NavigationManager NavigationManager
 @inject IServiceProvider ServiceProvider
+@inject INotAuthorizedComponentTypeProvider NotAuthorizedComponentTypeProvider
 <AuthorizeView Policy="@(Policies<TContext,TEntity>.CanDelete)" Context="AuthorizeContext">
     <Authorized Context="AuthorizeContext">
         <DbContextInfoComponent TContext="TContext" />
@@ -26,7 +27,7 @@
         </EditForm>
     </Authorized>
     <NotAuthorized>
-        <h3>You are not authorized to view this page.</h3>
+        <DynamicComponent Type="NotAuthorizedComponentTypeProvider.GetNotAuthorizedComponentType<TContext, TEntity>()" />
     </NotAuthorized>
 </AuthorizeView>
 @code {

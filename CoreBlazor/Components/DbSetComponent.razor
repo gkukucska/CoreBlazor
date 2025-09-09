@@ -15,6 +15,7 @@
 @inject NavigationManager NavigationManager;
 @inject IServiceProvider ServiceProvider;
 @inject INavigationPathProvider NavigationPathProvider; 
+@inject INotAuthorizedComponentTypeProvider NotAuthorizedComponentTypeProvider;
 <AuthorizeView Policy="@(Policies<TContext,TEntity>.CanRead)" Context="CanReadContext">
     <Authorized Context="CanReadContext">
         <AuthorizeView Policy="@(Policies<TContext, TEntity>.CanCreate)">
@@ -34,7 +35,7 @@
         </AuthorizeView>
     </Authorized>
     <NotAuthorized Context="CanReadContext">
-        <h3>You are not authorized to view this page.</h3>
+        <DynamicComponent Type="NotAuthorizedComponentTypeProvider.GetNotAuthorizedComponentType<TContext,TEntity>()"/>
     </NotAuthorized>
 </AuthorizeView>
 

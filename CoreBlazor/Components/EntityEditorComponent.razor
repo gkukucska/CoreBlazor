@@ -13,6 +13,7 @@
 @inject NavigationManager NavigationManager
 @inject IServiceProvider ServiceProvider
 @inject INavigationPathProvider NavigationPathProvider
+@inject INotAuthorizedComponentTypeProvider NotAuthorizedComponentTypeProvider  
 <AuthorizeView Policy="@(Policies<TContext,TEntity>.CanEdit)" Context="CanEditContext">
     <Authorized Context="CanEditContext">
         <EditForm Model="Entity" OnValidSubmit="OnSaveChanges">
@@ -35,7 +36,7 @@
         </EditForm>
     </Authorized>
     <NotAuthorized>
-        <h3>You are not authorized to view this page.</h3>
+        <DynamicComponent Type="NotAuthorizedComponentTypeProvider.GetNotAuthorizedComponentType<TContext, TEntity>()" />
     </NotAuthorized>
 </AuthorizeView>
 @code{
