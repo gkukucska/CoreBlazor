@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddBlazorBootstrap()
+builder.Services
     .AddAuthorization()
     .AddScoped<DemoAuthenticationStateProvider>()
     .AddScoped<AuthenticationStateProvider, DemoAuthenticationStateProvider>(sp => sp.GetRequiredService<DemoAuthenticationStateProvider>())
@@ -78,7 +78,7 @@ app.UseAntiforgery();
 app.UseAuthorization();
 
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode()
-    .AddAdditionalAssemblies(typeof(ServiceCollectionExtensions).Assembly);
+   .AddInteractiveServerRenderMode()
+   .AddCoreBlazor();
 
 app.Run();
