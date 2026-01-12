@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.1.11312.151 d18.0
+VisualStudioVersion = 18.1.11312.151
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoDb", "DemoDb\DemoDb.csproj", "{087C0B3D-CA3C-43E6-A147-9E600096515E}"
 EndProject
@@ -14,11 +14,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pipelines", "Pipelines", "{6803F9F8-F201-49FD-B5BD-17A3B8D53A47}"
-	ProjectSection(SolutionItems) = preProject
-		.github\workflows\main_coreblazor-demo.yml = .github\workflows\main_coreblazor-demo.yml
 	EndProjectSection
 EndProject
 Global
@@ -46,9 +41,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{6803F9F8-F201-49FD-B5BD-17A3B8D53A47} = {8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {857249C6-12E4-481C-B028-25805649219B}

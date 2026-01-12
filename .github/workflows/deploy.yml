@@ -1,0 +1,47 @@
+name: Deploy to Azure
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact-name:
+        description: 'Name of the build artifact to deploy (e.g., coreblazor-demo-abc123)'
+        required: true
+        type: string
+      run-id:
+        description: 'Run ID of the build workflow that created the artifact'
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: 'DemoWebsite'
+      url: 'https://coreblazor-demo.azurewebsites.net'
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          run-id: ${{ inputs.run-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ./deploy
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F8E3391FA4BC4039AB139AAEE6C1D9A9 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_56DD0EBC07E2485DB0A5C0ABAE1ACE48 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6BD4B208CC7D4303BE2802E7A0D67476 }}
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'coreblazor-demo'
+          slot-name: 'Production'
+          package: ./deploy
