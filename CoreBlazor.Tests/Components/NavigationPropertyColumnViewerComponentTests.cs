@@ -14,11 +14,13 @@ namespace CoreBlazor.Tests.Components;
 
 public class NavigationPropertyColumnViewerComponentTests : Bunit.TestContext
 {
+    #region Test Helpers
+
     public class RelatedEntity
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        
+
         public override string ToString() => Name;
     }
 
@@ -54,6 +56,10 @@ public class NavigationPropertyColumnViewerComponentTests : Bunit.TestContext
         }
     }
 
+    #endregion
+
+    #region Basic Rendering Tests
+
     [Fact]
     public void Component_ShouldRender_WithoutErrors()
     {
@@ -71,6 +77,27 @@ public class NavigationPropertyColumnViewerComponentTests : Bunit.TestContext
         // Assert
         cut.Instance.Should().NotBeNull();
     }
+
+    [Fact]
+    public void Component_HandlesNullProperty_WithoutError()
+    {
+        // Arrange
+        var entity = new TestEntity { Id = 1, Related = null };
+
+        // Act
+        var cut = RenderComponent<NavigationPropertyColumnViewerComponent<TestDbContext, TestEntity, RelatedEntity>>(parameters =>
+        {
+            parameters.Add(p => p.Entity, entity);
+            parameters.Add(p => p.PropertyName, nameof(TestEntity.Related));
+        });
+
+        // Assert
+        cut.Instance.Should().NotBeNull();
+    }
+
+    #endregion
+
+    #region Display Configuration Tests
 
     [Fact]
     public void Component_UsesComponentDisplay_WhenConfigured()
@@ -126,48 +153,6 @@ public class NavigationPropertyColumnViewerComponentTests : Bunit.TestContext
     }
 
     [Fact]
-    public void Component_HandlesNullProperty_WithoutError()
-    {
-        // Arrange
-        var entity = new TestEntity { Id = 1, Related = null };
-
-        // Act
-        var cut = RenderComponent<NavigationPropertyColumnViewerComponent<TestDbContext, TestEntity, RelatedEntity>>(parameters =>
-        {
-            parameters.Add(p => p.Entity, entity);
-            parameters.Add(p => p.PropertyName, nameof(TestEntity.Related));
-        });
-
-        // Assert
-        cut.Instance.Should().NotBeNull();
-    }
-
-    [Fact]
-    public void Component_SetsDbSetOptions_WhenAvailable()
-    {
-        // Arrange
-        var options = new CoreBlazorDbSetOptions<TestDbContext, RelatedEntity>
-        {
-            ComponentDisplay = typeof(TestEntityDisplayComponent)
-        };
-        Services.AddSingleton(options);
-
-        var related = new RelatedEntity { Id = 1, Name = "TestItem" };
-        var entity = new TestEntity { Id = 1, Related = related };
-
-        // Act
-        var cut = RenderComponent<NavigationPropertyColumnViewerComponent<TestDbContext, TestEntity, RelatedEntity>>(parameters =>
-        {
-            parameters.Add(p => p.Entity, entity);
-            parameters.Add(p => p.PropertyName, nameof(TestEntity.Related));
-        });
-
-        // Assert
-        cut.Instance.DbSetOptions.Should().NotBeNull();
-        cut.Instance.DbSetOptions.Should().Be(options);
-    }
-
-    [Fact]
     public void Component_ComponentDisplay_TakesPrecedenceOver_StringDisplay()
     {
         // Arrange
@@ -197,4 +182,35 @@ public class NavigationPropertyColumnViewerComponentTests : Bunit.TestContext
         cut.Markup.Should().Contain("Custom Display:");
         stringDisplayCalled.Should().BeFalse();
     }
+
+    #endregion
+
+    #region DbSetOptions Tests
+
+    [Fact]
+    public void Component_SetsDbSetOptions_WhenAvailable()
+    {
+        // Arrange
+        var options = new CoreBlazorDbSetOptions<TestDbContext, RelatedEntity>
+        {
+            ComponentDisplay = typeof(TestEntityDisplayComponent)
+        };
+        Services.AddSingleton(options);
+
+        var related = new RelatedEntity { Id = 1, Name = "TestItem" };
+        var entity = new TestEntity { Id = 1, Related = related };
+
+        // Act
+        var cut = RenderComponent<NavigationPropertyColumnViewerComponent<TestDbContext, TestEntity, RelatedEntity>>(parameters =>
+        {
+            parameters.Add(p => p.Entity, entity);
+            parameters.Add(p => p.PropertyName, nameof(TestEntity.Related));
+        });
+
+        // Assert
+        cut.Instance.DbSetOptions.Should().NotBeNull();
+        cut.Instance.DbSetOptions.Should().Be(options);
+    }
+
+    #endregion
 }

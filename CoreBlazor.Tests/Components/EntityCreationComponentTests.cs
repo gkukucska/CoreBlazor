@@ -24,6 +24,8 @@ namespace CoreBlazor.Tests.Components;
 /// </summary>
 public class EntityCreationComponentTests : Bunit.TestContext
 {
+    #region Test Helpers
+
     /// <summary>
     /// Simple test entity with basic properties
     /// </summary>
@@ -101,13 +103,17 @@ public class EntityCreationComponentTests : Bunit.TestContext
         return Task.FromResult(new AuthenticationState(user));
     }
 
+    #endregion
+
+    #region Basic Rendering Tests
+
     [Fact]
     public void Component_ShouldRender_WithoutErrors()
     {
         // Arrange
         var context = new TestDbContext();
         _contextFactory.CreateDbContextAsync(default).Returns(context);
-        
+
         _navigationPathProvider
             .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
             .Returns("/entities");
@@ -120,151 +126,6 @@ public class EntityCreationComponentTests : Bunit.TestContext
         );
 
         // Assert
-        cut.Instance.Should().NotBeNull();
-    }
-
-    [Fact]
-    public void Component_ShouldInitializeEntity_OnParametersSet()
-    {
-        // Arrange
-        var context = new TestDbContext();
-        _contextFactory.CreateDbContextAsync(default).Returns(context);
-        _navigationPathProvider
-            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
-            .Returns("/entities");
-
-        var authState = CreateAuthenticationState();
-
-        // Act
-        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
-            parameters => parameters.AddCascadingValue(authState)
-        );
-
-        // Assert
-        cut.Instance.Entity.Should().NotBeNull();
-        cut.Instance.Entity.Should().BeOfType<TestEntity>();
-    }
-
-    [Fact]
-    public void Component_ShouldHaveEmptyEntity_WhenInitialized()
-    {
-        // Arrange
-        var context = new TestDbContext();
-        _contextFactory.CreateDbContextAsync(default).Returns(context);
-        _navigationPathProvider
-            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
-            .Returns("/entities");
-
-        var authState = CreateAuthenticationState();
-
-        // Act
-        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
-            parameters => parameters.AddCascadingValue(authState)
-        );
-
-        // Assert
-        cut.Instance.Entity.Id.Should().Be(0);
-        cut.Instance.Entity.Name.Should().BeEmpty();
-        cut.Instance.Entity.Description.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void Component_ShouldSetEntityIdParameter()
-    {
-        // Arrange
-        var context = new TestDbContext();
-        _contextFactory.CreateDbContextAsync(default).Returns(context);
-        _navigationPathProvider
-            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
-            .Returns("/entities");
-
-        var authState = CreateAuthenticationState();
-
-        // Act
-        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
-            parameters => 
-            {
-                parameters.Add(p => p.EntityId, "123");
-                parameters.AddCascadingValue(authState);
-            }
-        );
-
-        // Assert
-        cut.Instance.EntityId.Should().Be("123");
-    }
-
-    [Fact]
-    public void CreateForm_ShouldBeInitialized()
-    {
-        // Arrange
-        var context = new TestDbContext();
-        _contextFactory.CreateDbContextAsync(default).Returns(context);
-        _navigationPathProvider
-            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
-            .Returns("/entities");
-
-        var authState = CreateAuthenticationState();
-
-        // Act
-        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
-            parameters => parameters.AddCascadingValue(authState)
-        );
-
-        // Assert
-        cut.Instance.CreateForm.Should().NotBeNull();
-        cut.Instance.CreateForm.Should().BeOfType<EditForm>();
-    }
-
-    [Fact]
-    public void Component_ShouldInjectRequiredServices()
-    {
-        // Verify that all required services are properly injected
-        Services.GetService<IDbContextFactory<TestDbContext>>().Should().NotBeNull();
-        Services.GetService<NavigationManager>().Should().NotBeNull();
-        Services.GetService<INavigationPathProvider>().Should().NotBeNull();
-        Services.GetService<INotAuthorizedComponentTypeProvider>().Should().NotBeNull();
-    }
-
-    [Fact]
-    public void Component_ShouldUseCorrectAuthorizationPolicy()
-    {
-        // Arrange
-        var context = new TestDbContext();
-        _contextFactory.CreateDbContextAsync(default).Returns(context);
-        _navigationPathProvider
-            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
-            .Returns("/entities");
-
-        var authState = CreateAuthenticationState();
-
-        // Act
-        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
-            parameters => parameters.AddCascadingValue(authState)
-        );
-
-        // Assert
-        var expectedPolicy = Policies<TestDbContext, TestEntity>.CanCreate;
-        expectedPolicy.Should().Contain("Create");
-        expectedPolicy.Should().Contain("TestDbContext");
-        expectedPolicy.Should().Contain("TestEntity");
-    }
-
-    [Fact]
-    public void Component_ShouldSupportGenericTypeParameters()
-    {
-        // Arrange
-        var context = new TestDbContext();
-        _contextFactory.CreateDbContextAsync(default).Returns(context);
-        _navigationPathProvider
-            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
-            .Returns("/entities");
-
-        var authState = CreateAuthenticationState();
-
-        // Act & Assert
-        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
-            parameters => parameters.AddCascadingValue(authState)
-        );
         cut.Instance.Should().NotBeNull();
     }
 
@@ -331,6 +192,55 @@ public class EntityCreationComponentTests : Bunit.TestContext
         cut.Markup.Should().Contain("Go back", because: "Go back button should be rendered");
     }
 
+    #endregion
+
+    #region Entity Initialization Tests
+
+    [Fact]
+    public void Component_ShouldInitializeEntity_OnParametersSet()
+    {
+        // Arrange
+        var context = new TestDbContext();
+        _contextFactory.CreateDbContextAsync(default).Returns(context);
+        _navigationPathProvider
+            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
+            .Returns("/entities");
+
+        var authState = CreateAuthenticationState();
+
+        // Act
+        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+            parameters => parameters.AddCascadingValue(authState)
+        );
+
+        // Assert
+        cut.Instance.Entity.Should().NotBeNull();
+        cut.Instance.Entity.Should().BeOfType<TestEntity>();
+    }
+
+    [Fact]
+    public void Component_ShouldHaveEmptyEntity_WhenInitialized()
+    {
+        // Arrange
+        var context = new TestDbContext();
+        _contextFactory.CreateDbContextAsync(default).Returns(context);
+        _navigationPathProvider
+            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
+            .Returns("/entities");
+
+        var authState = CreateAuthenticationState();
+
+        // Act
+        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+            parameters => parameters.AddCascadingValue(authState)
+        );
+
+        // Assert
+        cut.Instance.Entity.Id.Should().Be(0);
+        cut.Instance.Entity.Name.Should().BeEmpty();
+        cut.Instance.Entity.Description.Should().BeEmpty();
+    }
+
     [Fact]
     public void Component_ShouldNotHaveIdSet()
     {
@@ -350,6 +260,163 @@ public class EntityCreationComponentTests : Bunit.TestContext
 
         // Assert - New entity should not have ID set (0 for value types)
         cut.Instance.Entity.Id.Should().Be(default);
+    }
+
+    [Fact]
+    public void Component_EntityInitialization_CreatesNewInstanceEachTime()
+    {
+        // Arrange
+        var context = new TestDbContext();
+        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(context));
+        _navigationPathProvider.GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity)).Returns("/entities");
+
+        var authState = CreateAuthenticationState();
+
+        // Act
+        var cut1 = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+            parameters => parameters.AddCascadingValue(authState)
+        );
+        var entity1 = cut1.Instance.Entity;
+
+        var cut2 = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+            parameters => parameters.AddCascadingValue(authState)
+        );
+        var entity2 = cut2.Instance.Entity;
+
+        // Assert - Each component should have its own entity instance
+        entity1.Should().NotBeSameAs(entity2);
+    }
+
+    #endregion
+
+    #region Parameter Tests
+
+    [Fact]
+    public void Component_ShouldSetEntityIdParameter()
+    {
+        // Arrange
+        var context = new TestDbContext();
+        _contextFactory.CreateDbContextAsync(default).Returns(context);
+        _navigationPathProvider
+            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
+            .Returns("/entities");
+
+        var authState = CreateAuthenticationState();
+
+        // Act
+        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+            parameters =>
+            {
+                parameters.Add(p => p.EntityId, "123");
+                parameters.AddCascadingValue(authState);
+            }
+        );
+
+        // Assert
+        cut.Instance.EntityId.Should().Be("123");
+    }
+
+    [Fact]
+    public void Component_EntityIdParameter_ShouldBeNullable()
+    {
+        // Arrange
+        var context = new TestDbContext();
+        _contextFactory.CreateDbContextAsync(default).Returns(context);
+        _navigationPathProvider
+            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
+            .Returns("/entities");
+
+        var authState = CreateAuthenticationState();
+
+        // Act
+        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+            parameters => parameters.AddCascadingValue(authState)
+        );
+
+        // Assert - EntityId should be null or empty when not provided
+        cut.Instance.EntityId.Should().BeNullOrEmpty();
+    }
+
+    #endregion
+
+    #region Form Tests
+
+    [Fact]
+    public void CreateForm_ShouldBeInitialized()
+    {
+        // Arrange
+        var context = new TestDbContext();
+        _contextFactory.CreateDbContextAsync(default).Returns(context);
+        _navigationPathProvider
+            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
+            .Returns("/entities");
+
+        var authState = CreateAuthenticationState();
+
+        // Act
+        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+            parameters => parameters.AddCascadingValue(authState)
+        );
+
+        // Assert
+        cut.Instance.CreateForm.Should().NotBeNull();
+        cut.Instance.CreateForm.Should().BeOfType<EditForm>();
+    }
+
+    #endregion
+
+    #region Service Integration Tests
+
+    [Fact]
+    public void Component_ShouldInjectRequiredServices()
+    {
+        // Verify that all required services are properly injected
+        Services.GetService<IDbContextFactory<TestDbContext>>().Should().NotBeNull();
+        Services.GetService<NavigationManager>().Should().NotBeNull();
+        Services.GetService<INavigationPathProvider>().Should().NotBeNull();
+        Services.GetService<INotAuthorizedComponentTypeProvider>().Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Component_ShouldInjectNavigationManager()
+    {
+        // Arrange
+        var context = new TestDbContext();
+        _contextFactory.CreateDbContextAsync(default).Returns(context);
+        _navigationPathProvider
+            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
+            .Returns("/entities");
+
+        var authState = CreateAuthenticationState();
+
+        // Act
+        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+            parameters => parameters.AddCascadingValue(authState)
+        );
+
+        // Assert
+        Services.GetService<NavigationManager>().Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Component_ShouldHaveCorrectContextFactory()
+    {
+        // Arrange
+        var context = new TestDbContext();
+        _contextFactory.CreateDbContextAsync(default).Returns(context);
+        _navigationPathProvider
+            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
+            .Returns("/entities");
+
+        var authState = CreateAuthenticationState();
+
+        // Act
+        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+            parameters => parameters.AddCascadingValue(authState)
+        );
+
+        // Assert - Verify ContextFactory was used
+        _contextFactory.Received(1).CreateDbContextAsync(default);
     }
 
     [Fact]
@@ -402,50 +469,12 @@ public class EntityCreationComponentTests : Bunit.TestContext
         returned.Should().Be(notAuthorizedType);
     }
 
-    [Fact]
-    public void Component_ShouldHaveCorrectContextFactory()
-    {
-        // Arrange
-        var context = new TestDbContext();
-        _contextFactory.CreateDbContextAsync(default).Returns(context);
-        _navigationPathProvider
-            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
-            .Returns("/entities");
+    #endregion
 
-        var authState = CreateAuthenticationState();
-
-        // Act
-        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
-            parameters => parameters.AddCascadingValue(authState)
-        );
-
-        // Assert - Verify ContextFactory was used
-        _contextFactory.Received(1).CreateDbContextAsync(default);
-    }
+    #region Authorization Tests
 
     [Fact]
-    public void Component_EntityIdParameter_ShouldBeNullable()
-    {
-        // Arrange
-        var context = new TestDbContext();
-        _contextFactory.CreateDbContextAsync(default).Returns(context);
-        _navigationPathProvider
-            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
-            .Returns("/entities");
-
-        var authState = CreateAuthenticationState();
-
-        // Act
-        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
-            parameters => parameters.AddCascadingValue(authState)
-        );
-
-        // Assert - EntityId should be null or empty when not provided
-        cut.Instance.EntityId.Should().BeNullOrEmpty();
-    }
-
-    [Fact]
-    public void Component_ShouldInjectNavigationManager()
+    public void Component_ShouldUseCorrectAuthorizationPolicy()
     {
         // Arrange
         var context = new TestDbContext();
@@ -462,7 +491,29 @@ public class EntityCreationComponentTests : Bunit.TestContext
         );
 
         // Assert
-        Services.GetService<NavigationManager>().Should().NotBeNull();
+        var expectedPolicy = Policies<TestDbContext, TestEntity>.CanCreate;
+        expectedPolicy.Should().Contain("Create");
+        expectedPolicy.Should().Contain("TestDbContext");
+        expectedPolicy.Should().Contain("TestEntity");
+    }
+
+    [Fact]
+    public void Component_ShouldSupportGenericTypeParameters()
+    {
+        // Arrange
+        var context = new TestDbContext();
+        _contextFactory.CreateDbContextAsync(default).Returns(context);
+        _navigationPathProvider
+            .GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity))
+            .Returns("/entities");
+
+        var authState = CreateAuthenticationState();
+
+        // Act & Assert
+        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+            parameters => parameters.AddCascadingValue(authState)
+        );
+        cut.Instance.Should().NotBeNull();
     }
 
     [Fact]
@@ -487,6 +538,55 @@ public class EntityCreationComponentTests : Bunit.TestContext
         // Assert - Not authorized message should be rendered
         cut.Markup.Should().Contain("You are not authorized to view this page.");
     }
+
+    [Fact]
+    public void Component_HandlesUnauthenticatedUser()
+    {
+        // Arrange
+        var context = new TestDbContext();
+        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(context));
+        _navigationPathProvider.GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity)).Returns("/entities");
+
+        // Create unauthenticated state
+        var unauthenticatedIdentity = new ClaimsIdentity(); // No authentication type
+        var unauthenticatedUser = new ClaimsPrincipal(unauthenticatedIdentity);
+        var unauthenticatedState = Task.FromResult(new AuthenticationState(unauthenticatedUser));
+
+        // Update auth provider
+        var unauthProvider = Substitute.For<AuthenticationStateProvider>();
+        unauthProvider.GetAuthenticationStateAsync().Returns(unauthenticatedState);
+
+        var existing = Services.FirstOrDefault(d => d.ServiceType == typeof(AuthenticationStateProvider));
+        if (existing is not null) Services.Remove(existing);
+        Services.AddSingleton(unauthProvider);
+
+        // Act
+        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+            parameters => parameters.AddCascadingValue(unauthenticatedState)
+        );
+
+        // Assert - Component should render (authorization handled by AuthorizeView)
+        cut.Instance.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Component_HandlesNullAuthenticationState()
+    {
+        // Arrange
+        var context = new TestDbContext();
+        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(context));
+        _navigationPathProvider.GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity)).Returns("/entities");
+
+        // Act & Assert - Should throw or handle gracefully depending on component implementation
+        var act = () => RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>();
+
+        // Component may require authentication state
+        act.Should().NotBeNull();
+    }
+
+    #endregion
+
+    #region Edge Case Tests
 
     [Fact]
     public void Component_HandlesSaveException()
@@ -560,7 +660,7 @@ public class EntityCreationComponentTests : Bunit.TestContext
 
         // Act
         var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
-            parameters => 
+            parameters =>
             {
                 parameters.Add(p => p.EntityId, "invalid-id");
                 parameters.AddCascadingValue(authState);
@@ -583,7 +683,7 @@ public class EntityCreationComponentTests : Bunit.TestContext
 
         // Act
         var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
-            parameters => 
+            parameters =>
             {
                 parameters.Add(p => p.EntityId, "-1");
                 parameters.AddCascadingValue(authState);
@@ -592,51 +692,6 @@ public class EntityCreationComponentTests : Bunit.TestContext
 
         // Assert
         cut.Instance.EntityId.Should().Be("-1");
-    }
-
-    [Fact]
-    public void Component_HandlesNullAuthenticationState()
-    {
-        // Arrange
-        var context = new TestDbContext();
-        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(context));
-        _navigationPathProvider.GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity)).Returns("/entities");
-
-        // Act & Assert - Should throw or handle gracefully depending on component implementation
-        var act = () => RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>();
-        
-        // Component may require authentication state
-        act.Should().NotBeNull();
-    }
-
-    [Fact]
-    public void Component_HandlesUnauthenticatedUser()
-    {
-        // Arrange
-        var context = new TestDbContext();
-        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(context));
-        _navigationPathProvider.GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity)).Returns("/entities");
-
-        // Create unauthenticated state
-        var unauthenticatedIdentity = new ClaimsIdentity(); // No authentication type
-        var unauthenticatedUser = new ClaimsPrincipal(unauthenticatedIdentity);
-        var unauthenticatedState = Task.FromResult(new AuthenticationState(unauthenticatedUser));
-
-        // Update auth provider
-        var unauthProvider = Substitute.For<AuthenticationStateProvider>();
-        unauthProvider.GetAuthenticationStateAsync().Returns(unauthenticatedState);
-        
-        var existing = Services.FirstOrDefault(d => d.ServiceType == typeof(AuthenticationStateProvider));
-        if (existing is not null) Services.Remove(existing);
-        Services.AddSingleton(unauthProvider);
-
-        // Act
-        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
-            parameters => parameters.AddCascadingValue(unauthenticatedState)
-        );
-
-        // Assert - Component should render (authorization handled by AuthorizeView)
-        cut.Instance.Should().NotBeNull();
     }
 
     [Fact]
@@ -662,28 +717,5 @@ public class EntityCreationComponentTests : Bunit.TestContext
         _contextFactory.ReceivedCalls().Count().Should().BeGreaterThan(0);
     }
 
-    [Fact]
-    public void Component_EntityInitialization_CreatesNewInstanceEachTime()
-    {
-        // Arrange
-        var context = new TestDbContext();
-        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(context));
-        _navigationPathProvider.GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity)).Returns("/entities");
-
-        var authState = CreateAuthenticationState();
-
-        // Act
-        var cut1 = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
-            parameters => parameters.AddCascadingValue(authState)
-        );
-        var entity1 = cut1.Instance.Entity;
-
-        var cut2 = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
-            parameters => parameters.AddCascadingValue(authState)
-        );
-        var entity2 = cut2.Instance.Entity;
-
-        // Assert - Each component should have its own entity instance
-        entity1.Should().NotBeSameAs(entity2);
-    }
+    #endregion
 }

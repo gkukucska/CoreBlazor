@@ -8,6 +8,8 @@ namespace CoreBlazor.Tests.Components;
 
 public class NotAuthorizedComponentTests : Bunit.TestContext
 {
+    #region Test Helpers
+
     public class TestEntity
     {
         public int Id { get; set; }
@@ -19,6 +21,20 @@ public class NotAuthorizedComponentTests : Bunit.TestContext
         public DbSet<TestEntity> TestEntities { get; set; }
 
         public TestDbContext(DbContextOptions<TestDbContext> options) : base(options) { }
+    }
+
+    #endregion
+
+    #region Rendering Tests
+
+    [Fact]
+    public void Component_ShouldRender_WithoutErrors()
+    {
+        // Act
+        var cut = RenderComponent<NotAuthorizedComponent<TestDbContext, TestEntity>>();
+
+        // Assert
+        cut.Instance.Should().NotBeNull();
     }
 
     [Fact]
@@ -43,16 +59,6 @@ public class NotAuthorizedComponentTests : Bunit.TestContext
     }
 
     [Fact]
-    public void Component_ShouldRender_WithoutErrors()
-    {
-        // Act
-        var cut = RenderComponent<NotAuthorizedComponent<TestDbContext, TestEntity>>();
-
-        // Assert
-        cut.Instance.Should().NotBeNull();
-    }
-
-    [Fact]
     public void Component_Message_IsConsistent()
     {
         // Act
@@ -72,4 +78,6 @@ public class NotAuthorizedComponentTests : Bunit.TestContext
         // Assert
         cut.Markup.Should().Contain("You are not authorized to view this page.");
     }
+
+    #endregion
 }

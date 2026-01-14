@@ -22,6 +22,8 @@ namespace CoreBlazor.Tests.Components;
 /// </summary>
 public class DbSetComponentTests : Bunit.TestContext
 {
+    #region Test Helpers
+
     public class TestEntity
     {
         public int Id { get; set; }
@@ -57,6 +59,10 @@ public class DbSetComponentTests : Bunit.TestContext
         Services.AddSingleton(_notAuthorizedComponentTypeProvider);
     }
 
+    #endregion
+
+    #region Service Injection Tests
+
     [Fact]
     public void Component_ShouldInjectRequiredServices()
     {
@@ -68,12 +74,23 @@ public class DbSetComponentTests : Bunit.TestContext
     }
 
     [Fact]
+    public void NavigationManager_ShouldBePropertyMocked()
+    {
+        // Test that NavigationManager is properly mocked
+        _navigationManager.Should().NotBeNull();
+    }
+
+    #endregion
+
+    #region DbSetOptions Tests
+
+    [Fact]
     public void Component_ShouldInitializeDbSetOptions()
     {
         // Test that DbSetOptions can be registered and retrieved from service provider
-        var dbSetOptions = new CoreBlazorDbSetOptions<TestDbContext, TestEntity> 
-        { 
-            DisplayTitle = "Test Entities" 
+        var dbSetOptions = new CoreBlazorDbSetOptions<TestDbContext, TestEntity>
+        {
+            DisplayTitle = "Test Entities"
         };
         Services.AddSingleton(dbSetOptions);
 
@@ -81,6 +98,48 @@ public class DbSetComponentTests : Bunit.TestContext
         retrievedOptions.Should().NotBeNull();
         retrievedOptions!.DisplayTitle.Should().Be("Test Entities");
     }
+
+    [Fact]
+    public void DbSetOptions_ShouldSupportCustomDisplayTitle()
+    {
+        // Test that DbSetOptions can be customized with display titles
+        var options = new CoreBlazorDbSetOptions<TestDbContext, TestEntity>
+        {
+            DisplayTitle = "My Custom Entities"
+        };
+
+        options.DisplayTitle.Should().Be("My Custom Entities");
+    }
+
+    [Fact]
+    public void DbSetOptions_HandlesNullDisplayTitle()
+    {
+        // Arrange
+        var options = new CoreBlazorDbSetOptions<TestDbContext, TestEntity>
+        {
+            DisplayTitle = null!
+        };
+
+        // Assert
+        options.DisplayTitle.Should().BeNull();
+    }
+
+    [Fact]
+    public void DbSetOptions_HandlesEmptyDisplayTitle()
+    {
+        // Arrange
+        var options = new CoreBlazorDbSetOptions<TestDbContext, TestEntity>
+        {
+            DisplayTitle = string.Empty
+        };
+
+        // Assert
+        options.DisplayTitle.Should().BeEmpty();
+    }
+
+    #endregion
+
+    #region Policy Tests
 
     [Fact]
     public void Policies_ShouldGenerateCorrectPolicyNames()
@@ -104,6 +163,40 @@ public class DbSetComponentTests : Bunit.TestContext
     }
 
     [Fact]
+    public void Component_ShouldSupportGenericTypeParameters()
+    {
+        // Test that component properly handles generic type parameters
+        // This verifies the type constraints are satisfied
+        var canReadPolicy = Policies<TestDbContext, TestEntity>.CanRead;
+        canReadPolicy.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public void Policies_HandlesNullContext()
+    {
+        // Test policy generation with null contexts (edge case)
+        // This documents expected behavior
+        var policy = Policies<TestDbContext, TestEntity>.CanRead;
+        policy.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public void Component_HandlesInvalidPolicyNames()
+    {
+        // Test that policy names are generated even with unusual type names
+        // This is an edge case test
+        var policy = Policies<TestDbContext, TestEntity>.CanRead;
+        policy.Should().NotBeNullOrEmpty();
+        policy.Should().NotContain(" ");
+        policy.Should().NotContain("\t");
+        policy.Should().NotContain("\n");
+    }
+
+    #endregion
+
+    #region Navigation Path Provider Tests
+
+    [Fact]
     public void NavigationPathProvider_ShouldGenerateCorrectPaths()
     {
         // Test that navigation paths are generated correctly
@@ -114,98 +207,6 @@ public class DbSetComponentTests : Bunit.TestContext
 
         var result = _navigationPathProvider.GetPathToCreateEntity(nameof(TestDbContext), nameof(TestEntity));
         result.Should().Be(createPath);
-    }
-
-    [Fact]
-    public void NotAuthorizedComponentTypeProvider_ShouldReturnComponentType()
-    {
-        // Test that provider returns the correct component type for unauthorized access
-        var componentType = typeof(NotAuthorizedComponent<TestDbContext, TestEntity>);
-        _notAuthorizedComponentTypeProvider
-            .GetNotAuthorizedComponentType<TestDbContext, TestEntity>()
-            .Returns(componentType);
-
-        var result = _notAuthorizedComponentTypeProvider.GetNotAuthorizedComponentType<TestDbContext, TestEntity>();
-        result.Should().Be(componentType);
-    }
-
-    [Fact]
-    public void Component_ShouldSupportGenericTypeParameters()
-    {
-        // Test that component properly handles generic type parameters
-        // This verifies the type constraints are satisfied
-        var canReadPolicy = Policies<TestDbContext, TestEntity>.CanRead;
-        canReadPolicy.Should().NotBeNullOrEmpty();
-    }
-
-    [Fact]
-    public void DbSetOptions_ShouldSupportCustomDisplayTitle()
-    {
-        // Test that DbSetOptions can be customized with display titles
-        var options = new CoreBlazorDbSetOptions<TestDbContext, TestEntity>
-        {
-            DisplayTitle = "My Custom Entities"
-        };
-
-        options.DisplayTitle.Should().Be("My Custom Entities");
-    }
-
-    [Fact]
-    public void NavigationManager_ShouldBePropertyMocked()
-    {
-        // Test that NavigationManager is properly mocked
-        _navigationManager.Should().NotBeNull();
-    }
-
-    [Fact]
-    public void Component_HandlesDbContextFactoryException()
-    {
-        // Arrange
-        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromException<TestDbContext>(new InvalidOperationException("Database connection failed")));
-
-        // Act & Assert - Component should handle database connection failures
-        _contextFactory.Invoking(f => f.CreateDbContextAsync(default))
-            .Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Database connection failed");
-    }
-
-    [Fact]
-    public void Component_HandlesNullDbContextFactory()
-    {
-        // Arrange - Remove the factory
-        var existing = Services.FirstOrDefault(d => d.ServiceType == typeof(IDbContextFactory<TestDbContext>));
-        if (existing != null) Services.Remove(existing);
-
-        // Act & Assert
-        var factory = Services.GetService<IDbContextFactory<TestDbContext>>();
-        factory.Should().BeNull();
-    }
-
-    [Fact]
-    public void Component_HandlesEmptyDbSet()
-    {
-        // Arrange
-        var context = new TestDbContext();
-        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(context));
-
-        // Act - Context with no entities
-        var dbSet = context.TestEntities;
-
-        // Assert
-        dbSet.Should().NotBeNull();
-        dbSet.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void Component_HandlesNullNavigationPathProvider()
-    {
-        // Arrange - Remove the provider
-        var existing = Services.FirstOrDefault(d => d.ServiceType == typeof(INavigationPathProvider));
-        if (existing != null) Services.Remove(existing);
-
-        // Act & Assert
-        var provider = Services.GetService<INavigationPathProvider>();
-        provider.Should().BeNull();
     }
 
     [Fact]
@@ -261,38 +262,37 @@ public class DbSetComponentTests : Bunit.TestContext
     }
 
     [Fact]
-    public void Policies_HandlesNullContext()
-    {
-        // Test policy generation with null contexts (edge case)
-        // This documents expected behavior
-        var policy = Policies<TestDbContext, TestEntity>.CanRead;
-        policy.Should().NotBeNullOrEmpty();
-    }
-
-    [Fact]
-    public void DbSetOptions_HandlesNullDisplayTitle()
+    public void NavigationPathProvider_HandlesConcurrentAccess()
     {
         // Arrange
-        var options = new CoreBlazorDbSetOptions<TestDbContext, TestEntity>
-        {
-            DisplayTitle = null!
-        };
+        _navigationPathProvider.GetPathToCreateEntity(Arg.Any<string>(), Arg.Any<string>())
+            .Returns("/test/path");
+
+        // Act - Multiple concurrent calls
+        var tasks = Enumerable.Range(0, 10)
+            .Select(_ => Task.Run(() => _navigationPathProvider.GetPathToCreateEntity(nameof(TestDbContext), nameof(TestEntity))))
+            .ToList();
 
         // Assert
-        options.DisplayTitle.Should().BeNull();
+        Task.WhenAll(tasks).Wait();
+        tasks.Should().OnlyContain(t => t.Result == "/test/path");
     }
 
-    [Fact]
-    public void DbSetOptions_HandlesEmptyDisplayTitle()
-    {
-        // Arrange
-        var options = new CoreBlazorDbSetOptions<TestDbContext, TestEntity>
-        {
-            DisplayTitle = string.Empty
-        };
+    #endregion
 
-        // Assert
-        options.DisplayTitle.Should().BeEmpty();
+    #region NotAuthorizedComponentTypeProvider Tests
+
+    [Fact]
+    public void NotAuthorizedComponentTypeProvider_ShouldReturnComponentType()
+    {
+        // Test that provider returns the correct component type for unauthorized access
+        var componentType = typeof(NotAuthorizedComponent<TestDbContext, TestEntity>);
+        _notAuthorizedComponentTypeProvider
+            .GetNotAuthorizedComponentType<TestDbContext, TestEntity>()
+            .Returns(componentType);
+
+        var result = _notAuthorizedComponentTypeProvider.GetNotAuthorizedComponentType<TestDbContext, TestEntity>();
+        result.Should().Be(componentType);
     }
 
     [Fact]
@@ -308,21 +308,80 @@ public class DbSetComponentTests : Bunit.TestContext
         result.Should().BeNull();
     }
 
+    #endregion
+
+    #region DbContext Factory Tests
+
+    [Fact]
+    public void Component_HandlesDbContextFactoryException()
+    {
+        // Arrange
+        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromException<TestDbContext>(new InvalidOperationException("Database connection failed")));
+
+        // Act & Assert - Component should handle database connection failures
+        _contextFactory.Invoking(f => f.CreateDbContextAsync(default))
+            .Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Database connection failed");
+    }
+
+    [Fact]
+    public void Component_HandlesNullDbContextFactory()
+    {
+        // Arrange - Remove the factory
+        var existing = Services.FirstOrDefault(d => d.ServiceType == typeof(IDbContextFactory<TestDbContext>));
+        if (existing != null) Services.Remove(existing);
+
+        // Act & Assert
+        var factory = Services.GetService<IDbContextFactory<TestDbContext>>();
+        factory.Should().BeNull();
+    }
+
+    [Fact]
+    public void Component_HandlesEmptyDbSet()
+    {
+        // Arrange
+        var context = new TestDbContext();
+        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(context));
+
+        // Act - Context with no entities
+        var dbSet = context.TestEntities;
+
+        // Assert
+        dbSet.Should().NotBeNull();
+        dbSet.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Component_HandlesNullNavigationPathProvider()
+    {
+        // Arrange - Remove the provider
+        var existing = Services.FirstOrDefault(d => d.ServiceType == typeof(INavigationPathProvider));
+        if (existing != null) Services.Remove(existing);
+
+        // Act & Assert
+        var provider = Services.GetService<INavigationPathProvider>();
+        provider.Should().BeNull();
+    }
+
     [Fact]
     public void Component_HandlesMultipleServiceRegistrations()
     {
         // Arrange - Register multiple instances
         var factory1 = Substitute.For<IDbContextFactory<TestDbContext>>();
         var factory2 = Substitute.For<IDbContextFactory<TestDbContext>>();
-        
+
         Services.AddSingleton(factory1);
-        
+
         // Act - Get service should return one instance
         var result = Services.GetService<IDbContextFactory<TestDbContext>>();
 
         // Assert
         result.Should().NotBeNull();
     }
+
+    #endregion
+
+    #region Lifecycle Tests
 
     [Fact]
     public void Component_HandlesDbContextDisposal()
@@ -353,32 +412,5 @@ public class DbSetComponentTests : Bunit.TestContext
         tasks.Should().OnlyContain(t => t.IsCompleted);
     }
 
-    [Fact]
-    public void Component_HandlesInvalidPolicyNames()
-    {
-        // Test that policy names are generated even with unusual type names
-        // This is an edge case test
-        var policy = Policies<TestDbContext, TestEntity>.CanRead;
-        policy.Should().NotBeNullOrEmpty();
-        policy.Should().NotContain(" ");
-        policy.Should().NotContain("\t");
-        policy.Should().NotContain("\n");
-    }
-
-    [Fact]
-    public void NavigationPathProvider_HandlesConcurrentAccess()
-    {
-        // Arrange
-        _navigationPathProvider.GetPathToCreateEntity(Arg.Any<string>(), Arg.Any<string>())
-            .Returns("/test/path");
-
-        // Act - Multiple concurrent calls
-        var tasks = Enumerable.Range(0, 10)
-            .Select(_ => Task.Run(() => _navigationPathProvider.GetPathToCreateEntity(nameof(TestDbContext), nameof(TestEntity))))
-            .ToList();
-
-        // Assert
-        Task.WhenAll(tasks).Wait();
-        tasks.Should().OnlyContain(t => t.Result == "/test/path");
-    }
+    #endregion
 }

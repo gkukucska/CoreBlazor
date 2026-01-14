@@ -14,6 +14,8 @@ namespace CoreBlazor.Tests.Components;
 
 public class DbContextInfoComponentTests : Bunit.TestContext
 {
+    #region Test Helpers
+
     public class TestDbContext : DbContext
     {
         public TestDbContext(DbContextOptions<TestDbContext> options) : base(options) { }
@@ -39,6 +41,10 @@ public class DbContextInfoComponentTests : Bunit.TestContext
         _notAuthorizedProvider.GetNotAuthorizedComponentType<TestDbContext, object>()
             .Returns(typeof(NotAuthorizedComponent<TestDbContext, object>));
     }
+
+    #endregion
+
+    #region Basic Rendering Tests
 
     [Fact]
     public void Component_ShouldRender_WithContextName()
@@ -79,6 +85,29 @@ public class DbContextInfoComponentTests : Bunit.TestContext
     }
 
     [Fact]
+    public void Component_PropertiesSet_AfterInitialization()
+    {
+        // Arrange
+        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(Component_PropertiesSet_AfterInitialization));
+        var context = new TestDbContext(options);
+        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(context));
+
+        // Act
+        var cut = RenderComponent<DbContextInfoComponent<TestDbContext>>(parameters =>
+        {
+            parameters.AddCascadingValue(AuthenticationHelper.CreateAuthenticationState());
+        });
+
+        // Assert
+        cut.Instance.ContextName.Should().NotBeNullOrEmpty();
+        cut.Instance.Provider.Should().NotBeNullOrEmpty();
+    }
+
+    #endregion
+
+    #region Service Integration Tests
+
+    [Fact]
     public void Component_CallsContextFactory_OnParametersSet()
     {
         // Arrange
@@ -95,6 +124,10 @@ public class DbContextInfoComponentTests : Bunit.TestContext
         // Assert
         _contextFactory.Received(1).CreateDbContextAsync(default);
     }
+
+    #endregion
+
+    #region Table Rendering Tests
 
     [Fact]
     public void Component_RendersTable_WithProperStructure()
@@ -116,82 +149,6 @@ public class DbContextInfoComponentTests : Bunit.TestContext
         cut.Markup.Should().Contain("table-bordered");
         cut.Markup.Should().Contain("table-striped");
         cut.Markup.Should().Contain("<tbody>");
-    }
-
-    [Fact]
-    public void Component_ShowsNotAuthorized_WhenPolicyFails()
-    {
-        // Isolated test context
-        using var ctx = new Bunit.TestContext();
-
-        ctx.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationService, DenyAuthorizationService>();
-        ctx.Services.AddAuthorizationCore(options =>
-        {
-            options.AddPolicy(Policies<TestDbContext>.CanReadInfo, policy => policy.RequireAssertion(_ => false));
-        });
-
-        var localFactory = Substitute.For<IDbContextFactory<TestDbContext>>();
-        var localNotAuth = Substitute.For<INotAuthorizedComponentTypeProvider>();
-        localNotAuth.GetNotAuthorizedComponentType<TestDbContext, object>()
-            .Returns(typeof(NotAuthorizedComponent<TestDbContext, object>));
-
-        ctx.Services.AddSingleton(localFactory);
-        ctx.Services.AddSingleton(localNotAuth);
-
-        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(Component_ShowsNotAuthorized_WhenPolicyFails));
-        var context = new TestDbContext(options);
-        localFactory.CreateDbContextAsync(default).Returns(Task.FromResult(context));
-
-        var authProv = Substitute.For<AuthenticationStateProvider>();
-        authProv.GetAuthenticationStateAsync().Returns(AuthenticationHelper.CreateAuthenticationState());
-        ctx.Services.AddSingleton(authProv);
-
-        // Act
-        var cut = ctx.RenderComponent<DbContextInfoComponent<TestDbContext>>(parameters =>
-        {
-            parameters.AddCascadingValue(AuthenticationHelper.CreateAuthenticationState());
-        });
-
-        // Assert
-        cut.Markup.Should().Contain("You are not authorized to view this page.");
-    }
-
-    [Fact]
-    public void Component_PropertiesSet_AfterInitialization()
-    {
-        // Arrange
-        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(Component_PropertiesSet_AfterInitialization));
-        var context = new TestDbContext(options);
-        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(context));
-
-        // Act
-        var cut = RenderComponent<DbContextInfoComponent<TestDbContext>>(parameters =>
-        {
-            parameters.AddCascadingValue(AuthenticationHelper.CreateAuthenticationState());
-        });
-
-        // Assert
-        cut.Instance.ContextName.Should().NotBeNullOrEmpty();
-        cut.Instance.Provider.Should().NotBeNullOrEmpty();
-    }
-
-    [Fact]
-    public void Component_DoesNotShowDatabaseInfo_ForInMemoryProvider()
-    {
-        // Arrange
-        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(Component_DoesNotShowDatabaseInfo_ForInMemoryProvider));
-        var context = new TestDbContext(options);
-        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(context));
-
-        // Act
-        var cut = RenderComponent<DbContextInfoComponent<TestDbContext>>(parameters =>
-        {
-            parameters.AddCascadingValue(AuthenticationHelper.CreateAuthenticationState());
-        });
-
-        // Assert - InMemory provider is not relational, so Database and Source should be null
-        cut.Instance.DataBase.Should().BeNull();
-        cut.Instance.Source.Should().BeNull();
     }
 
     [Fact]
@@ -272,4 +229,71 @@ public class DbContextInfoComponentTests : Bunit.TestContext
         dataCells.Should().NotBeEmpty();
         dataCells[0].TextContent.Trim().Should().Be("TestDbContext");
     }
+
+    #endregion
+
+    #region InMemory Provider Tests
+
+    [Fact]
+    public void Component_DoesNotShowDatabaseInfo_ForInMemoryProvider()
+    {
+        // Arrange
+        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(Component_DoesNotShowDatabaseInfo_ForInMemoryProvider));
+        var context = new TestDbContext(options);
+        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(context));
+
+        // Act
+        var cut = RenderComponent<DbContextInfoComponent<TestDbContext>>(parameters =>
+        {
+            parameters.AddCascadingValue(AuthenticationHelper.CreateAuthenticationState());
+        });
+
+        // Assert - InMemory provider is not relational, so Database and Source should be null
+        cut.Instance.DataBase.Should().BeNull();
+        cut.Instance.Source.Should().BeNull();
+    }
+
+    #endregion
+
+    #region Authorization Tests
+
+    [Fact]
+    public void Component_ShowsNotAuthorized_WhenPolicyFails()
+    {
+        // Isolated test context
+        using var ctx = new Bunit.TestContext();
+
+        ctx.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationService, DenyAuthorizationService>();
+        ctx.Services.AddAuthorizationCore(options =>
+        {
+            options.AddPolicy(Policies<TestDbContext>.CanReadInfo, policy => policy.RequireAssertion(_ => false));
+        });
+
+        var localFactory = Substitute.For<IDbContextFactory<TestDbContext>>();
+        var localNotAuth = Substitute.For<INotAuthorizedComponentTypeProvider>();
+        localNotAuth.GetNotAuthorizedComponentType<TestDbContext, object>()
+            .Returns(typeof(NotAuthorizedComponent<TestDbContext, object>));
+
+        ctx.Services.AddSingleton(localFactory);
+        ctx.Services.AddSingleton(localNotAuth);
+
+        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(Component_ShowsNotAuthorized_WhenPolicyFails));
+        var context = new TestDbContext(options);
+        localFactory.CreateDbContextAsync(default).Returns(Task.FromResult(context));
+
+        var authProv = Substitute.For<AuthenticationStateProvider>();
+        authProv.GetAuthenticationStateAsync().Returns(AuthenticationHelper.CreateAuthenticationState());
+        ctx.Services.AddSingleton(authProv);
+
+        // Act
+        var cut = ctx.RenderComponent<DbContextInfoComponent<TestDbContext>>(parameters =>
+        {
+            parameters.AddCascadingValue(AuthenticationHelper.CreateAuthenticationState());
+        });
+
+        // Assert
+        cut.Markup.Should().Contain("You are not authorized to view this page.");
+    }
+
+    #endregion
 }

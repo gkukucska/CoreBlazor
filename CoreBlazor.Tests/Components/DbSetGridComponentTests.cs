@@ -14,6 +14,8 @@ namespace CoreBlazor.Tests.Components;
 
 public class DbSetGridComponentTests : Bunit.TestContext
 {
+    #region Test Helpers
+
     public class TestEntity
     {
         public int Id { get; set; }
@@ -48,6 +50,10 @@ public class DbSetGridComponentTests : Bunit.TestContext
         Services.AddSingleton(_navigationPathProvider);
     }
 
+    #endregion
+
+    #region Basic Rendering Tests
+
     [Fact]
     public void Component_ShouldRender_WithoutErrors()
     {
@@ -67,13 +73,17 @@ public class DbSetGridComponentTests : Bunit.TestContext
         cut.Markup.Should().Contain("table-hover");
     }
 
+    #endregion
+
+    #region Data Provider Tests
+
     [Fact]
     public async Task GetEntities_ShouldReturnGridResult()
     {
         // Arrange
         var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(GetEntities_ShouldReturnGridResult));
         var contextFactory = Substitute.For<IDbContextFactory<TestDbContext>>();
-        
+
         var testContext = new TestDbContext(options);
         contextFactory.CreateDbContextAsync(default).Returns(testContext);
         Services.AddSingleton(contextFactory);
@@ -93,7 +103,7 @@ public class DbSetGridComponentTests : Bunit.TestContext
             Filters = new List<FilterItem>(),
             Sorting = new List<SortingItem<TestEntity>>()
         };
-        
+
         var result = await cut.Instance.GetEntities(request);
 
         // Assert - Result should be a valid GridDataProviderResult
@@ -101,131 +111,6 @@ public class DbSetGridComponentTests : Bunit.TestContext
         result.Data.Should().NotBeNull();
         // In-memory database may or may not persist across SaveChanges, but the method should execute without error
         result.Data.Should().BeOfType<List<TestEntity>>();
-    }
-
-    [Fact]
-    public async Task GoToEntityEditorPage_ShouldNavigateCorrectly()
-    {
-        // Arrange
-        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(GoToEntityEditorPage_ShouldNavigateCorrectly));
-        var contextFactory = Substitute.For<IDbContextFactory<TestDbContext>>();
-        var testContext = new TestDbContext(options);
-        contextFactory.CreateDbContextAsync(default).Returns(testContext);
-        Services.AddSingleton(contextFactory);
-
-        var testEntity = new TestEntity { Id = 201, Name = "Test" };
-        testContext.TestEntities.Add(testEntity);
-        await testContext.SaveChangesAsync();
-
-        var expectedPath = "/edit/TestDbContext/TestEntity/201";
-        _navigationPathProvider.GetPathToEditEntity(
-            typeof(TestDbContext).Name,
-            typeof(TestEntity).Name,
-            "201")
-            .Returns(expectedPath);
-
-        var cut = RenderComponent<DbSetGridComponent<TestDbContext, TestEntity>>();
-
-        // Act
-        await cut.Instance.GoToEntityEditorPage(new GridRowEventArgs<TestEntity>(testEntity));
-
-        // Assert
-        cut.Instance.Should().NotBeNull();
-    }
-
-    [Fact]
-    public void IsFilterable_ShouldReturnFalseForNavigationProperties()
-    {
-        // Arrange
-        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(IsFilterable_ShouldReturnFalseForNavigationProperties));
-        var contextFactory = Substitute.For<IDbContextFactory<TestDbContext>>();
-        contextFactory.CreateDbContextAsync(default).Returns(new TestDbContext(options));
-        Services.AddSingleton(contextFactory);
-
-        var cut = RenderComponent<DbSetGridComponent<TestDbContext, TestEntity>>();
-        var propertyInfo = typeof(TestEntity).GetProperty(nameof(TestEntity.Related))!;
-
-        // Act
-        var result = cut.Instance.IsFilterable(propertyInfo);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsSortable_ShouldReturnTrueForComparableProperties()
-    {
-        // Arrange
-        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(IsSortable_ShouldReturnTrueForComparableProperties));
-        var contextFactory = Substitute.For<IDbContextFactory<TestDbContext>>();
-        contextFactory.CreateDbContextAsync(default).Returns(new TestDbContext(options));
-        Services.AddSingleton(contextFactory);
-
-        var cut = RenderComponent<DbSetGridComponent<TestDbContext, TestEntity>>();
-        var propertyInfo = typeof(TestEntity).GetProperty(nameof(TestEntity.Name))!;
-
-        // Act
-        var result = cut.Instance.IsSortable(propertyInfo);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task Component_ShouldDisposeDbContext()
-    {
-        // Arrange
-        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(Component_ShouldDisposeDbContext));
-        var dbContext = new TestDbContext(options);
-        var contextFactory = Substitute.For<IDbContextFactory<TestDbContext>>();
-        contextFactory.CreateDbContextAsync(default).Returns(dbContext);
-        Services.AddSingleton(contextFactory);
-
-        var cut = RenderComponent<DbSetGridComponent<TestDbContext, TestEntity>>();
-
-        // Act
-        await cut.Instance.DisposeAsync();
-
-        // Assert
-        dbContext.IsDisposed.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsSortable_ShouldReturnFalseForNonComparableProperties()
-    {
-        // Arrange
-        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(IsSortable_ShouldReturnFalseForNonComparableProperties));
-        var contextFactory = Substitute.For<IDbContextFactory<TestDbContext>>();
-        contextFactory.CreateDbContextAsync(default).Returns(new TestDbContext(options));
-        Services.AddSingleton(contextFactory);
-
-        var cut = RenderComponent<DbSetGridComponent<TestDbContext, TestEntity>>();
-        var propertyInfo = typeof(TestEntity).GetProperty(nameof(TestEntity.Related))!;
-
-        // Act
-        var result = cut.Instance.IsSortable(propertyInfo);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsFilterable_ShouldReturnTrueForSimpleProperties()
-    {
-        // Arrange
-        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(IsFilterable_ShouldReturnTrueForSimpleProperties));
-        var contextFactory = Substitute.For<IDbContextFactory<TestDbContext>>();
-        contextFactory.CreateDbContextAsync(default).Returns(new TestDbContext(options));
-        Services.AddSingleton(contextFactory);
-
-        var cut = RenderComponent<DbSetGridComponent<TestDbContext, TestEntity>>();
-        var propertyInfo = typeof(TestEntity).GetProperty(nameof(TestEntity.Name))!;
-
-        // Act
-        var result = cut.Instance.IsFilterable(propertyInfo);
-
-        // Assert
-        result.Should().BeTrue();
     }
 
     [Theory]
@@ -257,11 +142,150 @@ public class DbSetGridComponentTests : Bunit.TestContext
             Filters = new List<FilterItem>(),
             Sorting = new List<SortingItem<TestEntity>>()
         };
-        
+
         var result = await cut.Instance.GetEntities(request);
 
         // Assert
         result.Should().NotBeNull();
         result.Data.Should().NotBeNull();
     }
+
+    #endregion
+
+    #region Navigation Tests
+
+    [Fact]
+    public async Task GoToEntityEditorPage_ShouldNavigateCorrectly()
+    {
+        // Arrange
+        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(GoToEntityEditorPage_ShouldNavigateCorrectly));
+        var contextFactory = Substitute.For<IDbContextFactory<TestDbContext>>();
+        var testContext = new TestDbContext(options);
+        contextFactory.CreateDbContextAsync(default).Returns(testContext);
+        Services.AddSingleton(contextFactory);
+
+        var testEntity = new TestEntity { Id = 201, Name = "Test" };
+        testContext.TestEntities.Add(testEntity);
+        await testContext.SaveChangesAsync();
+
+        var expectedPath = "/edit/TestDbContext/TestEntity/201";
+        _navigationPathProvider.GetPathToEditEntity(
+            typeof(TestDbContext).Name,
+            typeof(TestEntity).Name,
+            "201")
+            .Returns(expectedPath);
+
+        var cut = RenderComponent<DbSetGridComponent<TestDbContext, TestEntity>>();
+
+        // Act
+        await cut.Instance.GoToEntityEditorPage(new GridRowEventArgs<TestEntity>(testEntity));
+
+        // Assert
+        cut.Instance.Should().NotBeNull();
+    }
+
+    #endregion
+
+    #region Property Analysis Tests
+
+    [Fact]
+    public void IsFilterable_ShouldReturnFalseForNavigationProperties()
+    {
+        // Arrange
+        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(IsFilterable_ShouldReturnFalseForNavigationProperties));
+        var contextFactory = Substitute.For<IDbContextFactory<TestDbContext>>();
+        contextFactory.CreateDbContextAsync(default).Returns(new TestDbContext(options));
+        Services.AddSingleton(contextFactory);
+
+        var cut = RenderComponent<DbSetGridComponent<TestDbContext, TestEntity>>();
+        var propertyInfo = typeof(TestEntity).GetProperty(nameof(TestEntity.Related))!;
+
+        // Act
+        var result = cut.Instance.IsFilterable(propertyInfo);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsFilterable_ShouldReturnTrueForSimpleProperties()
+    {
+        // Arrange
+        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(IsFilterable_ShouldReturnTrueForSimpleProperties));
+        var contextFactory = Substitute.For<IDbContextFactory<TestDbContext>>();
+        contextFactory.CreateDbContextAsync(default).Returns(new TestDbContext(options));
+        Services.AddSingleton(contextFactory);
+
+        var cut = RenderComponent<DbSetGridComponent<TestDbContext, TestEntity>>();
+        var propertyInfo = typeof(TestEntity).GetProperty(nameof(TestEntity.Name))!;
+
+        // Act
+        var result = cut.Instance.IsFilterable(propertyInfo);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsSortable_ShouldReturnTrueForComparableProperties()
+    {
+        // Arrange
+        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(IsSortable_ShouldReturnTrueForComparableProperties));
+        var contextFactory = Substitute.For<IDbContextFactory<TestDbContext>>();
+        contextFactory.CreateDbContextAsync(default).Returns(new TestDbContext(options));
+        Services.AddSingleton(contextFactory);
+
+        var cut = RenderComponent<DbSetGridComponent<TestDbContext, TestEntity>>();
+        var propertyInfo = typeof(TestEntity).GetProperty(nameof(TestEntity.Name))!;
+
+        // Act
+        var result = cut.Instance.IsSortable(propertyInfo);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsSortable_ShouldReturnFalseForNonComparableProperties()
+    {
+        // Arrange
+        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(IsSortable_ShouldReturnFalseForNonComparableProperties));
+        var contextFactory = Substitute.For<IDbContextFactory<TestDbContext>>();
+        contextFactory.CreateDbContextAsync(default).Returns(new TestDbContext(options));
+        Services.AddSingleton(contextFactory);
+
+        var cut = RenderComponent<DbSetGridComponent<TestDbContext, TestEntity>>();
+        var propertyInfo = typeof(TestEntity).GetProperty(nameof(TestEntity.Related))!;
+
+        // Act
+        var result = cut.Instance.IsSortable(propertyInfo);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    #endregion
+
+    #region Lifecycle Tests
+
+    [Fact]
+    public async Task Component_ShouldDisposeDbContext()
+    {
+        // Arrange
+        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(Component_ShouldDisposeDbContext));
+        var dbContext = new TestDbContext(options);
+        var contextFactory = Substitute.For<IDbContextFactory<TestDbContext>>();
+        contextFactory.CreateDbContextAsync(default).Returns(dbContext);
+        Services.AddSingleton(contextFactory);
+
+        var cut = RenderComponent<DbSetGridComponent<TestDbContext, TestEntity>>();
+
+        // Act
+        await cut.Instance.DisposeAsync();
+
+        // Assert
+        dbContext.IsDisposed.Should().BeTrue();
+    }
+
+    #endregion
 }

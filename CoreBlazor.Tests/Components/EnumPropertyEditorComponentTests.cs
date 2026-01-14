@@ -9,6 +9,8 @@ namespace CoreBlazor.Tests.Components;
 
 public class EnumPropertyEditorComponentTests : Bunit.TestContext
 {
+    #region Test Helpers
+
     public enum TestEnum
     {
         None = 0,
@@ -38,6 +40,10 @@ public class EnumPropertyEditorComponentTests : Bunit.TestContext
             builder.CloseComponent();
         };
 
+    #endregion
+
+    #region Basic Rendering Tests
+
     [Fact]
     public void Component_RendersSelect_WithAllEnumOptions()
     {
@@ -58,34 +64,22 @@ public class EnumPropertyEditorComponentTests : Bunit.TestContext
     }
 
     [Fact]
-    public void Component_ChangingSelection_UpdatesEntityProperty()
-    {
-        // Arrange
-        var entity = new TestEntity { MyEnum = TestEnum.First };
-
-        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), false));
-
-        var select = cut.Find("select");
-
-        // Act
-        select.Change(TestEnum.Second.ToString());
-
-        // Assert
-        entity.MyEnum.Should().Be(TestEnum.Second);
-    }
-
-    [Fact]
-    public void Component_Disabled_PreventsUserInteraction()
+    public void Component_RendersAllEnumValues_InCorrectOrder()
     {
         // Arrange
         var entity = new TestEntity { MyEnum = TestEnum.None };
 
-        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), true));
-
-        var select = cut.Find("select");
+        // Act
+        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), false));
 
         // Assert
-        select.HasAttribute("disabled").Should().BeTrue();
+        var select = cut.Find("select");
+        var optionTexts = select.Children.Select(o => o.TextContent).ToList();
+
+        optionTexts.Should().Contain("None");
+        optionTexts.Should().Contain("First");
+        optionTexts.Should().Contain("Second");
+        optionTexts.Should().Contain("Third");
     }
 
     [Theory]
@@ -107,20 +101,25 @@ public class EnumPropertyEditorComponentTests : Bunit.TestContext
         select.TextContent.Should().Contain(initialValue.ToString());
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void Component_RespectsDisabledState(bool isDisabled)
+    #endregion
+
+    #region Value Change Tests
+
+    [Fact]
+    public void Component_ChangingSelection_UpdatesEntityProperty()
     {
         // Arrange
         var entity = new TestEntity { MyEnum = TestEnum.First };
 
+        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), false));
+
+        var select = cut.Find("select");
+
         // Act
-        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), isDisabled));
+        select.Change(TestEnum.Second.ToString());
 
         // Assert
-        var select = cut.Find("select");
-        select.HasAttribute("disabled").Should().Be(isDisabled);
+        entity.MyEnum.Should().Be(TestEnum.Second);
     }
 
     [Fact]
@@ -145,23 +144,130 @@ public class EnumPropertyEditorComponentTests : Bunit.TestContext
     }
 
     [Fact]
-    public void Component_RendersAllEnumValues_InCorrectOrder()
+    public void Component_HandlesRapidChanges()
+    {
+        // Arrange
+        var entity = new TestEntity { MyEnum = TestEnum.None };
+        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), false));
+        var select = cut.Find("select");
+
+        // Act - Rapid changes
+        select.Change(TestEnum.First.ToString());
+        select.Change(TestEnum.Second.ToString());
+        select.Change(TestEnum.Third.ToString());
+        select.Change(TestEnum.None.ToString());
+
+        // Assert
+        entity.MyEnum.Should().Be(TestEnum.None);
+    }
+
+    [Fact]
+    public void Component_MaintainsState_AfterRerender()
+    {
+        // Arrange
+        var entity = new TestEntity { MyEnum = TestEnum.First };
+        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), false));
+
+        // Act - Change value
+        var select = cut.Find("select");
+        select.Change(TestEnum.Second.ToString());
+
+        // Assert - State should be maintained
+        entity.MyEnum.Should().Be(TestEnum.Second);
+        var selectAfterChange = cut.Find("select");
+        selectAfterChange.TextContent.Should().Contain("Second");
+    }
+
+    [Fact]
+    public void Component_HandlesInvalidEnumValue_GracefullyReverts()
+    {
+        // Arrange
+        var entity = new TestEntity { MyEnum = TestEnum.First };
+        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), false));
+        var select = cut.Find("select");
+
+        // Act - Try to set an invalid string value
+        try
+        {
+            select.Change("InvalidEnumValue");
+        }
+        catch
+        {
+            // Expected to fail
+        }
+
+        // Assert - Entity should maintain valid state
+        entity.MyEnum.Should().Be(TestEnum.First);
+    }
+
+    #endregion
+
+    #region Disabled State Tests
+
+    [Fact]
+    public void Component_Disabled_PreventsUserInteraction()
     {
         // Arrange
         var entity = new TestEntity { MyEnum = TestEnum.None };
 
+        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), true));
+
+        var select = cut.Find("select");
+
+        // Assert
+        select.HasAttribute("disabled").Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Component_RespectsDisabledState(bool isDisabled)
+    {
+        // Arrange
+        var entity = new TestEntity { MyEnum = TestEnum.First };
+
         // Act
-        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), false));
+        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), isDisabled));
 
         // Assert
         var select = cut.Find("select");
-        var optionTexts = select.Children.Select(o => o.TextContent).ToList();
-
-        optionTexts.Should().Contain("None");
-        optionTexts.Should().Contain("First");
-        optionTexts.Should().Contain("Second");
-        optionTexts.Should().Contain("Third");
+        select.HasAttribute("disabled").Should().Be(isDisabled);
     }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public void Component_DisabledAttribute_MatchesParameter(bool isDisabled, bool expectedDisabled)
+    {
+        // Arrange
+        var entity = new TestEntity { MyEnum = TestEnum.First };
+
+        // Act
+        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), isDisabled));
+
+        // Assert
+        var select = cut.Find("select");
+        select.HasAttribute("disabled").Should().Be(expectedDisabled);
+    }
+
+    [Fact]
+    public void Component_DisabledState_PreventsAllChanges()
+    {
+        // Arrange
+        var entity = new TestEntity { MyEnum = TestEnum.First };
+        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), true));
+        var select = cut.Find("select");
+
+        // Assert - Select should be disabled
+        select.HasAttribute("disabled").Should().BeTrue();
+
+        // Original value should remain
+        entity.MyEnum.Should().Be(TestEnum.First);
+    }
+
+    #endregion
+
+    #region Edge Case Tests
 
     [Fact]
     public void Component_ThrowsException_WhenEntityIsNull()
@@ -205,43 +311,6 @@ public class EnumPropertyEditorComponentTests : Bunit.TestContext
     }
 
     [Fact]
-    public void Component_HandlesInvalidEnumValue_GracefullyReverts()
-    {
-        // Arrange
-        var entity = new TestEntity { MyEnum = TestEnum.First };
-        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), false));
-        var select = cut.Find("select");
-
-        // Act - Try to set an invalid string value
-        try
-        {
-            select.Change("InvalidEnumValue");
-        }
-        catch
-        {
-            // Expected to fail
-        }
-
-        // Assert - Entity should maintain valid state
-        entity.MyEnum.Should().Be(TestEnum.First);
-    }
-
-    [Fact]
-    public void Component_DisabledState_PreventsAllChanges()
-    {
-        // Arrange
-        var entity = new TestEntity { MyEnum = TestEnum.First };
-        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), true));
-        var select = cut.Find("select");
-        
-        // Assert - Select should be disabled
-        select.HasAttribute("disabled").Should().BeTrue();
-        
-        // Original value should remain
-        entity.MyEnum.Should().Be(TestEnum.First);
-    }
-
-    [Fact]
     public void Component_HandlesEnumWithNoValues()
     {
         // This test documents behavior when working with empty enums (edge case)
@@ -257,54 +326,5 @@ public class EnumPropertyEditorComponentTests : Bunit.TestContext
         select.Should().NotBeNull();
     }
 
-    [Fact]
-    public void Component_HandlesRapidChanges()
-    {
-        // Arrange
-        var entity = new TestEntity { MyEnum = TestEnum.None };
-        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), false));
-        var select = cut.Find("select");
-
-        // Act - Rapid changes
-        select.Change(TestEnum.First.ToString());
-        select.Change(TestEnum.Second.ToString());
-        select.Change(TestEnum.Third.ToString());
-        select.Change(TestEnum.None.ToString());
-
-        // Assert
-        entity.MyEnum.Should().Be(TestEnum.None);
-    }
-
-    [Fact]
-    public void Component_MaintainsState_AfterRerender()
-    {
-        // Arrange
-        var entity = new TestEntity { MyEnum = TestEnum.First };
-        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), false));
-        
-        // Act - Change value
-        var select = cut.Find("select");
-        select.Change(TestEnum.Second.ToString());
-
-        // Assert - State should be maintained
-        entity.MyEnum.Should().Be(TestEnum.Second);
-        var selectAfterChange = cut.Find("select");
-        selectAfterChange.TextContent.Should().Contain("Second");
-    }
-
-    [Theory]
-    [InlineData(true, true)]
-    [InlineData(false, false)]
-    public void Component_DisabledAttribute_MatchesParameter(bool isDisabled, bool expectedDisabled)
-    {
-        // Arrange
-        var entity = new TestEntity { MyEnum = TestEnum.First };
-
-        // Act
-        var cut = Render(RenderInsideEditForm(entity, nameof(TestEntity.MyEnum), isDisabled));
-
-        // Assert
-        var select = cut.Find("select");
-        select.HasAttribute("disabled").Should().Be(expectedDisabled);
-    }
+    #endregion
 }

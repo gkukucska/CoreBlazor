@@ -15,6 +15,8 @@ namespace CoreBlazor.Tests.Components;
 
 public class EntityEditorComponentTests : Bunit.TestContext
 {
+    #region Test Helpers
+
     public class TestEntity
     {
         public int Id { get; set; }
@@ -58,6 +60,10 @@ public class EntityEditorComponentTests : Bunit.TestContext
         Services.AddSingleton(_notAuthorizedComponentTypeProvider);
     }
 
+    #endregion
+
+    #region Basic Rendering Tests
+
     [Fact]
     public void Component_ShouldRender_WithoutErrors()
     {
@@ -85,6 +91,39 @@ public class EntityEditorComponentTests : Bunit.TestContext
         cut.Instance.Entity.Id.Should().Be(1);
     }
 
+    [Theory]
+    [InlineData("1", "Test1")]
+    [InlineData("2", "Test2")]
+    [InlineData("3", "Test3")]
+    public void Component_LoadsCorrectEntity_ForDifferentIds(string entityId, string name)
+    {
+        // Arrange
+        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>($"{nameof(Component_LoadsCorrectEntity_ForDifferentIds)}_{entityId}");
+        using (var seed = new TestDbContext(options))
+        {
+            seed.TestEntities.Add(new TestEntity { Id = int.Parse(entityId), Name = name });
+            seed.SaveChanges();
+        }
+
+        _contextFactory.CreateDbContextAsync(default).Returns(ci => Task.FromResult(new TestDbContext(options)));
+        _navigationPathProvider.GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity)).Returns("/entities");
+
+        // Act
+        var cut = RenderComponent<EntityEditorComponent<TestDbContext, TestEntity>>(parameters =>
+        {
+            parameters.Add(p => p.EntityId, entityId);
+            parameters.AddCascadingValue(AuthenticationHelper.CreateAuthenticationState());
+        });
+
+        // Assert
+        cut.Instance.Entity.Id.Should().Be(int.Parse(entityId));
+        cut.Instance.Entity.Name.Should().Be(name);
+    }
+
+    #endregion
+
+    #region Context Factory Tests
+
     [Fact]
     public void Component_ShouldCallContextFactory_OnRender()
     {
@@ -109,6 +148,10 @@ public class EntityEditorComponentTests : Bunit.TestContext
         // Assert
         _contextFactory.Received().CreateDbContextAsync(default);
     }
+
+    #endregion
+
+    #region Save Tests
 
     [Fact]
     public void Component_ShouldSaveChanges_OnValidSubmit()
@@ -148,6 +191,43 @@ public class EntityEditorComponentTests : Bunit.TestContext
         var nav = Services.GetRequiredService<NavigationManager>();
         nav.Uri.Should().EndWith(expectedPath);
     }
+
+    [Fact]
+    public void Component_HandlesSaveFailure()
+    {
+        // Arrange
+        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(Component_HandlesSaveFailure));
+        using (var seed = new TestDbContext(options))
+        {
+            seed.TestEntities.Add(new TestEntity { Id = 5, Name = "Entity5" });
+            seed.SaveChanges();
+        }
+
+        // Create a context that will fail on SaveChanges
+        var faultyContext = Substitute.For<TestDbContext>(options);
+        faultyContext.When(x => x.SaveChanges()).Do(_ => throw new DbUpdateException("Save failed"));
+
+        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(new TestDbContext(options)));
+        _navigationPathProvider.GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity)).Returns("/entities");
+
+        var cut = RenderComponent<EntityEditorComponent<TestDbContext, TestEntity>>(parameters =>
+        {
+            parameters.Add(p => p.EntityId, "5");
+            parameters.AddCascadingValue(AuthenticationHelper.CreateAuthenticationState());
+        });
+
+        cut.Instance.Entity.Name = "UpdatedName";
+
+        // Act & Assert
+        var button = cut.Find("button[type=submit]");
+        // Note: Actual exception handling depends on component implementation
+        // This test documents the expected behavior
+        button.Click();
+    }
+
+    #endregion
+
+    #region Authorization Tests
 
     [Fact]
     public void Component_ShouldRender_NotAuthorized_WhenPolicyFails()
@@ -194,34 +274,9 @@ public class EntityEditorComponentTests : Bunit.TestContext
         cut.Markup.Should().Contain("You are not authorized to view this page.");
     }
 
-    [Theory]
-    [InlineData("1", "Test1")]
-    [InlineData("2", "Test2")]
-    [InlineData("3", "Test3")]
-    public void Component_LoadsCorrectEntity_ForDifferentIds(string entityId, string name)
-    {
-        // Arrange
-        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>($"{nameof(Component_LoadsCorrectEntity_ForDifferentIds)}_{entityId}");
-        using (var seed = new TestDbContext(options))
-        {
-            seed.TestEntities.Add(new TestEntity { Id = int.Parse(entityId), Name = name });
-            seed.SaveChanges();
-        }
+    #endregion
 
-        _contextFactory.CreateDbContextAsync(default).Returns(ci => Task.FromResult(new TestDbContext(options)));
-        _navigationPathProvider.GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity)).Returns("/entities");
-
-        // Act
-        var cut = RenderComponent<EntityEditorComponent<TestDbContext, TestEntity>>(parameters =>
-        {
-            parameters.Add(p => p.EntityId, entityId);
-            parameters.AddCascadingValue(AuthenticationHelper.CreateAuthenticationState());
-        });
-
-        // Assert
-        cut.Instance.Entity.Id.Should().Be(int.Parse(entityId));
-        cut.Instance.Entity.Name.Should().Be(name);
-    }
+    #region Edge Case Tests
 
     [Fact]
     public void Component_ThrowsException_WhenEntityIdIsInvalid()
@@ -239,39 +294,6 @@ public class EntityEditorComponentTests : Bunit.TestContext
         });
 
         act.Should().Throw<Exception>();
-    }
-
-    [Fact]
-    public void Component_HandlesSaveFailure()
-    {
-        // Arrange
-        var options = TestDbContextHelper.CreateInMemoryOptions<TestDbContext>(nameof(Component_HandlesSaveFailure));
-        using (var seed = new TestDbContext(options))
-        {
-            seed.TestEntities.Add(new TestEntity { Id = 5, Name = "Entity5" });
-            seed.SaveChanges();
-        }
-
-        // Create a context that will fail on SaveChanges
-        var faultyContext = Substitute.For<TestDbContext>(options);
-        faultyContext.When(x => x.SaveChanges()).Do(_ => throw new DbUpdateException("Save failed"));
-        
-        _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(new TestDbContext(options)));
-        _navigationPathProvider.GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity)).Returns("/entities");
-
-        var cut = RenderComponent<EntityEditorComponent<TestDbContext, TestEntity>>(parameters =>
-        {
-            parameters.Add(p => p.EntityId, "5");
-            parameters.AddCascadingValue(AuthenticationHelper.CreateAuthenticationState());
-        });
-
-        cut.Instance.Entity.Name = "UpdatedName";
-
-        // Act & Assert
-        var button = cut.Find("button[type=submit]");
-        // Note: Actual exception handling depends on component implementation
-        // This test documents the expected behavior
-        button.Click();
     }
 
     [Fact]
@@ -339,4 +361,6 @@ public class EntityEditorComponentTests : Bunit.TestContext
         // Navigation with null path should throw
         act.Should().Throw<Exception>();
     }
+
+    #endregion
 }
