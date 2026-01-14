@@ -1,11 +1,19 @@
 # CoreBlazor
 
 [![codecov](https://codecov.io/gh/gkukucska/CoreBlazor/branch/main/graph/badge.svg)](https://codecov.io/gh/gkukucska/CoreBlazor)
-[![Build and deploy ASP.Net Core app to Azure Web App - coreblazor-demo](https://github.com/gkukucska/CoreBlazor/actions/workflows/main_coreblazor-demo.yml/badge.svg)](https://github.com/gkukucska/CoreBlazor/actions/workflows/main_coreblazor-demo.yml)
+[![Build and Test](https://github.com/gkukucska/CoreBlazor/actions/workflows/build.yml/badge.svg)](https://github.com/gkukucska/CoreBlazor/actions/workflows/build.yml)
+[![Deploy ASP.Net Core app to Azure Web App - coreblazor-demo](https://github.com/gkukucska/CoreBlazor/actions/workflows/deploy.yml/badge.svg)](https://github.com/gkukucska/CoreBlazor/actions/workflows/deploy.yml)
 
 A generic entity framework core UI library written in Blazor using server side rendering. 
 
-Feel free to check the demo app in action on this very slow website: https://coreblazor-demo.azurewebsites.net/
+Feel free to check the demo app in action on this very slow website: https://coreblazor-demo.azurewebsites.net/.
+In order to showcase the multiple DbContext support, the demo uses two separate databases: a normal and a "sensitive" database. 
+To interact with the sensitive database, please log in with the either of the provided users:
+- Reader: can read data 
+- Editor: can read add, and edit data
+- Admin: can read, add, edit and delete data
+
+To edit or delete data, double-click to the specific row in the table view.
 
 This package was inspired by the CoreAdmin library, but it has been completely rewritten with performance, extensibility and security in mind.
 
