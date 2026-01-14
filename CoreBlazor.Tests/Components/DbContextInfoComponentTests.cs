@@ -116,7 +116,7 @@ public class DbContextInfoComponentTests : Bunit.TestContext
         _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(context));
 
         // Act
-        var cut = RenderComponent<DbContextInfoComponent<TestDbContext>>(parameters =>
+        _ = RenderComponent<DbContextInfoComponent<TestDbContext>>(parameters =>
         {
             parameters.AddCascadingValue(AuthenticationHelper.CreateAuthenticationState());
         });

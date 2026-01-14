@@ -142,7 +142,7 @@ public class NavigationPropertyColumnViewerComponentTests : Bunit.TestContext
         var entity = new TestEntity { Id = 1, Related = related };
 
         // Act
-        var cut = RenderComponent<NavigationPropertyColumnViewerComponent<TestDbContext, TestEntity, RelatedEntity>>(parameters =>
+        _ = RenderComponent<NavigationPropertyColumnViewerComponent<TestDbContext, TestEntity, RelatedEntity>>(parameters =>
         {
             parameters.Add(p => p.Entity, entity);
             parameters.Add(p => p.PropertyName, nameof(TestEntity.Related));

@@ -139,7 +139,7 @@ public class EntityDeletionComponentTests : Bunit.TestContext
 
         var authState = CreateAuthenticationState();
 
-        var cut = RenderComponent<EntityDeletionComponent<TestDbContext, TestEntity>>(
+        _ = RenderComponent<EntityDeletionComponent<TestDbContext, TestEntity>>(
             parameters =>
             {
                 parameters.Add(p => p.EntityId, "2");

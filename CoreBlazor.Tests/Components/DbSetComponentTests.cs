@@ -368,7 +368,6 @@ public class DbSetComponentTests : Bunit.TestContext
     {
         // Arrange - Register multiple instances
         var factory1 = Substitute.For<IDbContextFactory<TestDbContext>>();
-        var factory2 = Substitute.For<IDbContextFactory<TestDbContext>>();
 
         Services.AddSingleton(factory1);
 
