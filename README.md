@@ -13,7 +13,7 @@ To interact with the sensitive database, please log in with either of the provid
 - Editor: can read, add, and edit data
 - Admin: can read, add, edit and delete data
 
-To edit or delete data, double-click to the specific row in the table view.
+To edit or delete data, double-click on the specific row in the table view.
 
 This package was inspired by the CoreAdmin library, but it has been completely rewritten with performance, extensibility and security in mind.
 
