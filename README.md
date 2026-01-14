@@ -10,7 +10,7 @@ Feel free to check the demo app in action on this very slow website: https://cor
 In order to showcase the multiple DbContext support, the demo uses two separate databases: a normal and a "sensitive" database. 
 To interact with the sensitive database, please log in with either of the provided users:
 - Reader: can read data 
-- Editor: can read add, and edit data
+- Editor: can read, add, and edit data
 - Admin: can read, add, edit and delete data
 
 To edit or delete data, double-click to the specific row in the table view.
