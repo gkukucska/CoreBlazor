@@ -139,7 +139,7 @@ public class EntityEditorComponentTests : Bunit.TestContext
         _navigationPathProvider.GetPathToReadEntities(nameof(TestDbContext), nameof(TestEntity)).Returns("/entities");
 
         // Act
-        var cut = RenderComponent<EntityEditorComponent<TestDbContext, TestEntity>>(parameters =>
+        _ = RenderComponent<EntityEditorComponent<TestDbContext, TestEntity>>(parameters =>
         {
             parameters.Add(p => p.EntityId, "2");
             parameters.AddCascadingValue(AuthenticationHelper.CreateAuthenticationState());

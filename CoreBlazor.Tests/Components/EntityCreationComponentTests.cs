@@ -390,7 +390,7 @@ public class EntityCreationComponentTests : Bunit.TestContext
         var authState = CreateAuthenticationState();
 
         // Act
-        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+        _ = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
             parameters => parameters.AddCascadingValue(authState)
         );
 
@@ -411,7 +411,7 @@ public class EntityCreationComponentTests : Bunit.TestContext
         var authState = CreateAuthenticationState();
 
         // Act
-        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+        _ = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
             parameters => parameters.AddCascadingValue(authState)
         );
 
@@ -433,7 +433,7 @@ public class EntityCreationComponentTests : Bunit.TestContext
         var authState = CreateAuthenticationState();
 
         // Act
-        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+        _ = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
             parameters => parameters.AddCascadingValue(authState)
         );
 
@@ -460,7 +460,7 @@ public class EntityCreationComponentTests : Bunit.TestContext
         var authState = CreateAuthenticationState();
 
         // Act
-        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+        _ = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
             parameters => parameters.AddCascadingValue(authState)
         );
 
@@ -486,7 +486,7 @@ public class EntityCreationComponentTests : Bunit.TestContext
         var authState = CreateAuthenticationState();
 
         // Act
-        var cut = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
+        _ = RenderComponent<EntityCreationComponent<TestDbContext, TestEntity>>(
             parameters => parameters.AddCascadingValue(authState)
         );
 

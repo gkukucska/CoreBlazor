@@ -143,7 +143,7 @@ public class NavigationPropertyEditorComponentTests : Bunit.TestContext
         _contextFactory.CreateDbContextAsync(default).Returns(Task.FromResult(new TestDbContext(options)));
 
         // Act
-        var cut = RenderComponent<NavigationPropertyEditorComponent<TestEntity, Related, TestDbContext>>(parameters =>
+        _ = RenderComponent<NavigationPropertyEditorComponent<TestEntity, Related, TestDbContext>>(parameters =>
         {
             parameters.Add(p => p.NavigationPropertyName, nameof(TestEntity.Related));
             parameters.Add(p => p.PropertySelected, EventCallback.Factory.Create(this, () => Task.CompletedTask));
