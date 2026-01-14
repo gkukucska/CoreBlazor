@@ -7,18 +7,21 @@
   </PropertyGroup>
 
 
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
 
   <ItemGroup>
       <PackageReference Include="Blazor.Bootstrap" Version="3.4.0" />
       <PackageReference Include="Microsoft.AspNetCore.Authorization.Policy" Version="2.3.0" />
       <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.19" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.8" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.19" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.19" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.*" />
       <PackageReference Include="System.Linq.Async" Version="6.0.3" />
     </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="CoreBlazor.Tests.csproj" />
+    <InternalsVisibleTo Include="CoreBlazor.Tests" />
   </ItemGroup>
 </Project>

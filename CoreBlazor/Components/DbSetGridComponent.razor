@@ -65,7 +65,7 @@
     private static Type CreateColumnType(PropertyInfo propertyInfo)
         => typeof(NavigationPropertyColumnViewerComponent<,,>).MakeGenericType(typeof(TContext), typeof(TEntity), propertyInfo.PropertyType);
 
-    private async Task<GridDataProviderResult<TEntity>> GetEntities(GridDataProviderRequest<TEntity> request)
+    internal async Task<GridDataProviderResult<TEntity>> GetEntities(GridDataProviderRequest<TEntity> request)
         => await _context.ApplyTo<TEntity>(request, DbSetOptions?.UseSplitQueries ?? false)
                          .ConfigureAwait(false);
 
@@ -83,13 +83,12 @@
     };
 
 
-    private bool IsFilterable(PropertyInfo prop)
+    internal bool IsFilterable(PropertyInfo prop)
     {
-        var context = ContextFactory.CreateDbContext();
-        return !context.IsNavigation<TEntity>(prop);
+        return !_context.IsNavigation<TEntity>(prop);
     }
 
-    private bool IsSortable(PropertyInfo prop)
+    internal bool IsSortable(PropertyInfo prop)
     {
         return typeof(IComparable).IsAssignableFrom(prop.PropertyType);
     }
@@ -97,7 +96,7 @@
     public async ValueTask DisposeAsync()
         => await _context.DisposeAsync();
 
-    private Task GoToEntityEditorPage(GridRowEventArgs<TEntity> args)
+    internal Task GoToEntityEditorPage(GridRowEventArgs<TEntity> args)
     {
         var primaryKey = _context.GetPrimaryKey<TEntity>();
         NavigationManager.NavigateTo(NavigationPathProvider.GetPathToEditEntity(typeof(TContext).Name, typeof(TEntity).Name, primaryKey.PropertyInfo!.GetValue(args.Item).ToString()));

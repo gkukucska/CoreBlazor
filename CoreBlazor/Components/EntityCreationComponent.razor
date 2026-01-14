@@ -41,7 +41,7 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
-        CreateForm.EditContext?.Validate();
+        CreateForm?.EditContext?.Validate();
         base.OnAfterRender(firstRender);
     }
 

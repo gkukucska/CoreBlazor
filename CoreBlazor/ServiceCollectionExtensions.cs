@@ -2,8 +2,10 @@ using CoreBlazor.Configuration;
 using CoreBlazor.Interfaces;
 using CoreBlazor.Utils;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using System.Reflection;
 
 namespace CoreBlazor;
 
@@ -12,7 +14,8 @@ public static class ServiceCollectionExtensions
     public static CoreBlazorOptionsBuilder AddCoreBlazor(this IServiceCollection services)
     {
 
-        services.AddCascadingAuthenticationState();
+        services.AddCascadingAuthenticationState()
+                .AddBlazorBootstrap();
         services.TryAddSingleton<INavigationPathProvider, DefaultNavigationPathProvider>();
         services.TryAddSingleton<INotAuthorizedComponentTypeProvider, DefaultNotAuthorizedComponentTypeProvider>();
         var discoveredContexts = new List<DiscoveredContext>();
@@ -32,4 +35,10 @@ public static class ServiceCollectionExtensions
         }
         return new CoreBlazorOptionsBuilder(services, discoveredContexts).WithAuthorizationCallback((_,_)=>true);
     }
+}
+
+public static class WebApplicationExtensions
+{
+    public static RazorComponentsEndpointConventionBuilder AddCoreBlazor(this RazorComponentsEndpointConventionBuilder app) 
+        => app.AddAdditionalAssemblies(Assembly.GetExecutingAssembly());
 }
