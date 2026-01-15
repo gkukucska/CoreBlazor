@@ -87,7 +87,7 @@ Follow the installation instructions for BlazorBootstrap in server side render m
 ## Advanced Configuration
 
 You can customize numerous features by using either the fluent API in the `AddCoreBlazor` method or by providing an instance of the `CoreBlazorDbContextOptions<TContext>` class.
-Please note the not all configuration options are available when providing an instance of the configuration class (e.g. authorization).
+Please note that not all configuration options are available when providing an instance of the configuration class (e.g. authorization).
 
 ### Configure Multiple DbContexts
 
