@@ -5,8 +5,26 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Version>0.1.0</Version>
+    
+    <!-- NuGet Package Metadata -->
+    <PackageId>CoreBlazor</PackageId>
+    <PackageIcon>CoreBlazor.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>A generic Entity Framework Core UI library written in Blazor using server side rendering. Provides automatic CRUD operations, navigation properties support, server-side pagination, sorting, filtering, and policy-based access control.</Description>
+    <Authors>gkukucska</Authors>
+    <RepositoryUrl>https://github.com/gkukucska/CoreBlazor</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>blazor;entityframework;crud;ui;admin;efcore</PackageTags>
+    <PackageLicenseFile>..\License</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/gkukucska/CoreBlazor</PackageProjectUrl>
   </PropertyGroup>
 
+  <!-- Include package assets -->
+  <ItemGroup>
+    <None Include="..\CoreBlazor.png" Pack="true" PackagePath="" />
+    <None Include="..\README.md" Pack="true" PackagePath="" />
+    <None Include="..\License" Pack="true" PackagePath="" />
+  </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
