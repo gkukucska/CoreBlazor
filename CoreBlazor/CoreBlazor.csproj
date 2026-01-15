@@ -15,7 +15,7 @@
     <RepositoryUrl>https://github.com/gkukucska/CoreBlazor</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>blazor;entityframework;crud;ui;admin;efcore</PackageTags>
-    <PackageLicenseFile>..\License</PackageLicenseFile>
+    <PackageLicenseFile>..\LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/gkukucska/CoreBlazor</PackageProjectUrl>
   </PropertyGroup>
 
