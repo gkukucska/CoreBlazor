@@ -1,5 +1,4 @@
-# 
-  <img src="https://github.com/gkukucska/CoreBlazor/blob/main/CoreBlazor.png" alt="CoreBlazor Logo" width="128" height="128"> CoreBlazor
+# <img src="https://github.com/gkukucska/CoreBlazor/blob/main/CoreBlazor.png" width="128" height="128"> CoreBlazor
 
 [![codecov](https://codecov.io/gh/gkukucska/CoreBlazor/branch/main/graph/badge.svg)](https://codecov.io/gh/gkukucska/CoreBlazor)
 [![Build and Test](https://github.com/gkukucska/CoreBlazor/actions/workflows/build.yml/badge.svg)](https://github.com/gkukucska/CoreBlazor/actions/workflows/build.yml)
