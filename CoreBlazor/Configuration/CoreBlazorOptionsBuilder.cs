@@ -1,9 +1,7 @@
 using CoreBlazor.Authorization;
-using CoreBlazor.Interfaces;
 using CoreBlazor.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Security.Claims;
 
 namespace CoreBlazor.Configuration;

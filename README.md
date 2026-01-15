@@ -54,6 +54,7 @@ builder.Services.AddDbContextFactory<YourDbContext>()
 ```
 
 This will add all required services to the dependency injection container and find all ```DbSet``` properties in all registered ```DbContext```.
+Note that DbContexts must be registered using `AddDbContextFactory`, and not `AddDbContext`.
 
 ### 2. Configure the Request Pipeline
 
@@ -85,9 +86,12 @@ Follow the installation instructions for BlazorBootstrap in server side render m
 
 ## Advanced Configuration
 
+You can customize numerous features by using either the fluent API in the `AddCoreBlazor` method or by providing an instance of the `CoreBlazorDbContextOptions<TContext>` class.
+Please note the not all configuration options are available when providing an instance of the configuration class (e.g. authorization).
+
 ### Configure Multiple DbContexts
 
-CoreBlazor supports multiple DbContext configurations:
+CoreBlazor supports multiple DbContext configurations. 
 
 ``` csharp
 builder.Services
@@ -109,22 +113,34 @@ builder.Services
 ### Context-Level Configuration
 
 #### Set Context Title
+
+Sets the title displayed in the navigation menu:
+
 ``` csharp
 options.WithTitle("My Database")
 ```
 
 #### Enable Split Queries
+
 Improve performance for queries with navigation properties:
+
 ``` csharp
 options.WithSplitQueries()
 ```
 
+Note that this setting applies to all DbSets in the context, for individual DbSet configuration, use the `WithSplitQueries` method on the DbSet options.
+
 #### Context-Level Access Control
+
+Control who can read the db context information:
+
 ``` csharp
 options.UserCanReadIf(user => user.IsInRole("Viewer"))
 ```
 
-### DbSet (Table) Configuration
+Note that this also disables read, edit, etc. authorizations on individual DbSets if the user is not authorized.
+
+### DbSet (Table) level Configuration
 
 Configure individual entity sets using the `ConfigureSet` method:
 
@@ -141,6 +157,9 @@ Configure individual entity sets using the `ConfigureSet` method:
 ```
 
 #### Alternative Syntax (Lambda Expression)
+
+In case more than one DbSet of the same type exists in the DbContext, you can also use a lambda expression to specify the DbSet:
+
 ``` csharp
 .ConfigureSet(context => context.People, personOptions => 
 {
@@ -151,16 +170,25 @@ Configure individual entity sets using the `ConfigureSet` method:
 ### Entity Display Configuration
 
 #### Display Entity with Custom Component
+
+This component will be used to display the entity when displayed in the grid or during editing, creation of parent entities:
+
 ``` csharp
 personOptions.WithEntityDisplay<PersonDisplayComponent>()
 ```
 
+The component must implement the `IEntityDisplayComponent<TEntity>` interface.
+
 #### Display Entity with Lambda Expression
+
+Short hand if the set should be displayed by one of its member properties:
+
 ``` csharp
 personOptions.WithEntityDisplay(person => person.Name)
 ```
 
 Example custom display component:
+
 ``` csharp
 public class PersonDisplayComponent : ComponentBase, IEntityDisplayComponent<Person>
 {
@@ -174,6 +202,8 @@ public class PersonDisplayComponent : ComponentBase, IEntityDisplayComponent<Per
 }
 ```
 
+Note that the `Parameter` attribute is required for the component parameters.
+
 ### Property Configuration
 
 #### Hide Properties
@@ -183,10 +213,15 @@ personOptions.ConfigureProperty(person => person.Id).Hidden()
 ```
 
 #### Custom Property Display
+
+This component will be used to display the property when displayed in the grid or during editing, creation of parent entities:
+
 ``` csharp
 personOptions.ConfigureProperty(person => person.Gender)
              .WithDisplay<GenderDisplayComponent>()
 ```
+
+The component must implement the `IPropertyDisplayComponent<TProperty>` interface.
 
 Display component example:
 ``` csharp
@@ -209,11 +244,16 @@ public class GenderDisplayComponent : ComponentBase, IPropertyDisplayComponent<P
 ```
 
 #### Custom Property Editor
+
+This component will be used to edit the property when editing or creating entities:
+
 ``` csharp
 imageOptions.ConfigureProperty(image => image.Data)
             .WithDisplay<ImageDisplayComponent>()
             .WithEditor<ImageEditorComponent>()
 ```
+
+The component must implement the `IPropertyEditorComponent<TEntity, TProperty>` interface.
 
 Editor component example:
 ``` csharp
@@ -242,16 +282,6 @@ jobOptions.UserCanReadIf(user => user.Identity.IsAuthenticated)
           .UserCanDeleteIf(user => user.IsInRole("Admin"))
 ```
 
-#### Custom User Objects
-
-Use custom user objects for more complex authorization:
-
-``` csharp
-.UserCanReadIf(user => user is CustomUser)
-.UserCanCreateIf(user => user == CustomUser.Admin || user == CustomUser.Editor)
-.UserCanEditIf(user => user == CustomUser.Admin || user == CustomUser.Editor)
-.UserCanDeleteIf(user => user == CustomUser.Admin)
-```
 
 #### Context-Level Permissions
 
@@ -259,6 +289,8 @@ Use custom user objects for more complex authorization:
 options.WithTitle("Sensitive Database")
        .UserCanReadIf(user => user.IsInRole("Admin"))
 ```
+
+Note that this also disables read, edit, etc. authorizations on individual DbSets if the user is not authorized.
 
 ## Complete Configuration Example
 
@@ -309,6 +341,8 @@ builder.Services
         });
 ```
 
+Please refer to the CorBlazorDemo project for a complete working example.
+
 ## Navigation Properties
 
 CoreBlazor automatically handles navigation properties:
@@ -336,7 +370,7 @@ All pagination, sorting, and filtering operations are performed server-side (in 
 - **Pagination**: Configurable page sizes
 - **Sorting**: Click column headers to sort
 - **Filtering**: Type to filter by column values
-- **Responsive**: Mobile-friendly tables
+- **Responsive**: Filtering, sorting, and pagination are executed on the database side
 
 ### CRUD Operations
 - **Create**: Add new entities with validation
@@ -344,6 +378,10 @@ All pagination, sorting, and filtering operations are performed server-side (in 
 - **Update**: Edit entities with custom editors
 - **Delete**: Confirm before deletion
 
+### Validation
+
+As of now only data annotations are supported for validation.
+ 
 ## Authorization Integration
 
 CoreBlazor integrates with ASP.NET Core's built-in authorization:
@@ -353,10 +391,14 @@ builder.Services.AddAuthorization()
                 .AddScoped<AuthenticationStateProvider, YourAuthProvider>();
 ```
 
-Access is controlled through:
-- Policy-based authorization
-- Role-based authorization
-- Custom authorization logic
+Access is controlled through user assertion for specific user roles, which can be either configured using the fluent API or by implementing custom authorization policies.
+
+The custom roles are generated based on the name of the DbContext and the DbSet and the access type (Read, Create, Edit, Delete):
+- Create: `"{DbContextName}/{DbSetName}/Create"`
+- Read: `"{DbContextName}/{DbSetName}/Read"`
+- Edit: `"{DbContextName}/{DbSetName}/Edit"`
+- Delete: `"{DbContextName}/{DbSetName}/Delete"`
+- Read Info: `"{DbContextName}/Info"`
 
 ## Customization
 
@@ -365,8 +407,10 @@ Access is controlled through:
 Implement these interfaces for custom components:
 
 - `IEntityDisplayComponent<TEntity>` - Custom entity display
-- `IPropertyDisplayComponent<TEntity>` - Custom property display
+- `IPropertyDisplayComponent<TProperty>` - Custom property display
 - `IPropertyEditorComponent<TEntity, TProperty>` - Custom property editor
+- `INavigationPathProvider` - Custom navigation paths
+- `INotAuthorizedComponentProvider` - Custom unauthorized access component
 
 ### Styling
 
@@ -419,13 +463,6 @@ Check the `CoreBlazorDemo` project for complete working examples including:
 - Authorization setup
 - Image handling
 
-## Contributing
-
-Contributions are welcome! Please check the GitHub repository for guidelines.
-
-## License
-
-[Your License Here]
 
 ## Support
 
