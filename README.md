@@ -341,7 +341,7 @@ builder.Services
         });
 ```
 
-Please refer to the CorBlazorDemo project for a complete working example.
+Please refer to the CoreBlazorDemo project for a complete working example.
 
 ## Navigation Properties
 
