@@ -1,4 +1,3 @@
-using BlazorBootstrap;
 using Bunit;
 using CoreBlazor.Authorization;
 using CoreBlazor.Components;
@@ -6,11 +5,9 @@ using CoreBlazor.Configuration;
 using CoreBlazor.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
-using System.Security.Claims;
 using Xunit;
 
 namespace CoreBlazor.Tests.Components;

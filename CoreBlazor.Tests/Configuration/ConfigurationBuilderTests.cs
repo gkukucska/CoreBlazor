@@ -1,18 +1,12 @@
-using CoreBlazor;
 using CoreBlazor.Authorization;
 using CoreBlazor.Configuration;
 using CoreBlazor.Interfaces;
-using CoreBlazor.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Security.Claims;
 using Xunit;
 
 namespace CoreBlazor.Tests.Configuration;

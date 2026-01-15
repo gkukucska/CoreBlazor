@@ -14,6 +14,7 @@
 @implements IDisposable
 <Sidebar Title="CoreBlazor"
          @ref="_sidebar"
+         ImageSrc="https://github.com/gkukucska/CoreBlazor/blob/main/CoreBlazor.png?raw=true"
          BadgeText="@($"{Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)}-alpha" ?? "Unknown")"
          DataProvider="SidebarDataProvider"
          WidthUnit="Unit.Px" />

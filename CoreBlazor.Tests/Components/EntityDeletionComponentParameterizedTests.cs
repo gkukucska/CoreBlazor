@@ -1,7 +1,5 @@
-using Bunit;
 using CoreBlazor.Authorization;
 using CoreBlazor.Components;
-using CoreBlazor.Tests.TestHelpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using Xunit;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Components;
 
 namespace CoreBlazor.Tests.Components;
 

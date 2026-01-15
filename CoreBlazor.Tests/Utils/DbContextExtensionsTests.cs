@@ -3,7 +3,6 @@ using CoreBlazor.Tests.TestHelpers;
 using CoreBlazor.Utils;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Xunit;
 
 namespace CoreBlazor.Tests.Utils;
