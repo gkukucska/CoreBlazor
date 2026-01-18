@@ -20,10 +20,10 @@
          WidthUnit="Unit.Px" />
 @code {
     [CascadingParameter]
-    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
     private IEnumerable<NavItem>? _navItems;
-    private Sidebar _sidebar;
+    private Sidebar _sidebar = null!;
 
     protected override void OnParametersSet()
     {

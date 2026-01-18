@@ -24,11 +24,11 @@
       OnRowDoubleClick="@GoToEntityEditorPage"
       PageSize="20">
     <GridColumns>
-        @foreach (var prop in typeof(TEntity).GetProperties().Where(x => x.IsDisplayable() &&
+        @foreach (var prop in typeof(TEntity).GetProperties().Where(x => x is not null && x.IsDisplayable() &&
                         (!DbSetOptions?.HiddenProperties.Any(y => y.Name == x.Name && y.PropertyType == x.PropertyType) ?? true)))
         {
             <GridColumn TItem="TEntity" HeaderText="@prop.Name" PropertyName="@prop.Name" Filterable="@IsFilterable(prop)" Sortable="@IsSortable(prop)" SortString="@prop.Name" SortKeySelector="prop.GetMemberAccessExpressionWithConversion<TEntity, IComparable>()">
-                @if (_context.IsNavigation<TEntity>(prop))
+                @if (_context!.IsNavigation<TEntity>(prop))
                 {
                     <DynamicComponent Type="@CreateColumnType(prop)"
                                       Parameters="@CreateColumnParameters(context,prop.Name)" />
@@ -53,7 +53,7 @@
     [Parameter]
     public bool AllowRowClick { get; set; }
 
-    private TContext _context;
+    private TContext? _context;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -66,7 +66,7 @@
         => typeof(NavigationPropertyColumnViewerComponent<,,>).MakeGenericType(typeof(TContext), typeof(TEntity), propertyInfo.PropertyType);
 
     internal async Task<GridDataProviderResult<TEntity>> GetEntities(GridDataProviderRequest<TEntity> request)
-        => await _context.ApplyTo<TEntity>(request, DbSetOptions?.UseSplitQueries ?? false)
+        => await _context!.ApplyTo<TEntity>(request, DbSetOptions?.UseSplitQueries ?? false)
                          .ConfigureAwait(false);
 
     private static Dictionary<string, object> CreateColumnParameters(TEntity entity, string propertyName)
@@ -76,8 +76,8 @@
         {nameof(NavigationPropertyColumnViewerComponent<DbContext,TEntity,object>.PropertyName), propertyName}
     };
 
-    private Dictionary<string, object> CreateCustomColumnParameters(object propertyValue)
-        => new Dictionary<string, object>
+    private Dictionary<string, object?> CreateCustomColumnParameters(object? propertyValue)
+        => new Dictionary<string, object?>
     {
         {nameof(IPropertyDisplayComponent<TEntity>.PropertyValue), propertyValue},
     };
@@ -85,7 +85,7 @@
 
     internal bool IsFilterable(PropertyInfo prop)
     {
-        return !_context.IsNavigation<TEntity>(prop);
+        return !_context?.IsNavigation<TEntity>(prop) ?? false;
     }
 
     internal bool IsSortable(PropertyInfo prop)
@@ -94,12 +94,16 @@
     }
 
     public async ValueTask DisposeAsync()
-        => await _context.DisposeAsync();
+        => await (_context?.DisposeAsync() ?? ValueTask.CompletedTask);
 
     internal Task GoToEntityEditorPage(GridRowEventArgs<TEntity> args)
     {
+        if (_context is null )
+        {
+            return Task.CompletedTask;
+        }
         var primaryKey = _context.GetPrimaryKey<TEntity>();
-        NavigationManager.NavigateTo(NavigationPathProvider.GetPathToEditEntity(typeof(TContext).Name, typeof(TEntity).Name, primaryKey.PropertyInfo!.GetValue(args.Item).ToString()));
+        NavigationManager.NavigateTo(NavigationPathProvider.GetPathToEditEntity(typeof(TContext).Name, typeof(TEntity).Name, primaryKey.PropertyInfo!.GetValue(args.Item)?.ToString() ?? string.Empty));
         return Task.CompletedTask;
     }
 

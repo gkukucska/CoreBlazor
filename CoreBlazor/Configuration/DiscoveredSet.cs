@@ -2,5 +2,5 @@ namespace CoreBlazor;
 
 public class DiscoveredSet
 {
-    public Type EntityType { get; set; }
+    public required Type EntityType { get; set; }
 }

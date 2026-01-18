@@ -8,10 +8,10 @@
 
 @code {
     [Parameter]
-    public string DbContext { get; set; }
+    public string DbContext { get; set; } = null!;
     [Parameter]
-    public string DbSet { get; set; }
-    public Type ComponentType { get; set; }
+    public string DbSet { get; set; } = null!;
+    public Type? ComponentType { get; set; }
     public IDictionary<string, object> Parameters { get; set; } = new Dictionary<string, object>();
 
     protected override void OnParametersSet()

@@ -15,7 +15,7 @@
 {
 
     @foreach (var property in typeof(TEntity).GetProperties().Where(property => property.IsDisplayable() &&
-                            (!DbSetOptions?.HiddenProperties.Any(y => y.Name == property.Name && y.PropertyType == property.PropertyType) ?? true) && !_context.IsGeneratedPrimaryKey<TEntity>(property)))
+                            (!DbSetOptions?.HiddenProperties.Any(y => y.Name == property.Name && y.PropertyType == property.PropertyType) ?? true) && !_context!.IsGeneratedPrimaryKey<TEntity>(property)))
     {
         if (DbSetOptions?.EditingTypes.SingleOrDefault(x => x.Key.Name == property.Name && x.Key.PropertyType == property.PropertyType) is { Value: Type displayType })
         {
@@ -149,7 +149,7 @@
             <DynamicComponent Type="@CreateEnumEditorComponentType(property)"
                               Parameters="@CreateEnumEditorComponentParameters(property)" />
     }
-        if (_navigations.Any(navigation => navigation.PropertyInfo.Name == property.Name && navigation.PropertyInfo.PropertyType == property.PropertyType))
+        if (_navigations.Any(navigation => navigation.PropertyInfo?.Name == property.Name && navigation.PropertyInfo.PropertyType == property.PropertyType))
         {
             <div class="form-group row mb-3">
                 <label class="col-md-2 col-form-label">@property.Name</label>
@@ -177,13 +177,13 @@ else
                       Parameters="@CreateNavigationPropertyEditorParameters(SelectingNavigationProperty)" />
 }
 @code {
-    private TContext _context;
-    private List<INavigation> _navigations;
+    private TContext? _context;
+    private List<INavigation> _navigations = [];
 
     public CoreBlazorDbSetOptions<TContext, TEntity>? DbSetOptions { get; set; }
 
     [Parameter]
-    public TEntity Entity { get; set; }
+    public TEntity Entity { get; set; } = null!;
 
     [Parameter]
     public bool IsDisabled { get; set; } = false;
@@ -239,7 +239,7 @@ else
     }
 
     public async ValueTask DisposeAsync()
-     => await _context.DisposeAsync();
+     => await (_context?.DisposeAsync() ?? ValueTask.CompletedTask);
 
     private void SelectionComplete(object type)
     {

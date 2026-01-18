@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Components;
-
-namespace CoreBlazor.Interfaces;
+﻿namespace CoreBlazor.Interfaces;
 
 public interface IEntityDisplayComponent<TEntity> where TEntity : class
 {
-    [Parameter]
-    public TEntity Entity { get; set; }
+    public TEntity? Entity { get; set; }
 }

@@ -27,11 +27,11 @@
 </AuthorizeView>
 @code {
     [Parameter]
-    public string EntityId { get; set; }
+    public string EntityId { get; set; } = null!;
 
-    public TEntity Entity { get; set; }
+    public TEntity? Entity { get; set; }
 
-    public EditForm CreateForm { get; set; }
+    public EditForm CreateForm { get; set; } = null!;
 
     protected override void OnParametersSet()
     {
@@ -47,11 +47,16 @@
 
     private async Task OnSaveChanges(EditContext args)
     {
+        if (Entity is null)
+        {
+            return;
+        }
         await using var context = await ContextFactory.CreateDbContextAsync();
         foreach (var navigation in context.GetNavigations<TEntity>()
-                                          .Select(x => x.PropertyInfo?.GetValue(Entity))
-                                          .Where(x => x is not null))
+                                          .Select(x => x.PropertyInfo?.GetValue(Entity)))
         {
+            if (navigation is null)
+                continue;
             context.Attach(navigation);
         }
         await context.AddAsync(Entity);

@@ -7,7 +7,7 @@ public abstract class CoreBlazorDbSetOptions<TEntity> where TEntity : class
 {
     public string DisplayTitle { get; set; } = typeof(TEntity).Name;
 
-    public Func<TEntity, string>? StringDisplay { get; set; }
+    public Func<TEntity?, string>? StringDisplay { get; set; }
 
     public Type? ComponentDisplay { get; set; }
 

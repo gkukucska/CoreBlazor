@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Version>0.1.0</Version>
+    <WarningsAsErrors>nullable</WarningsAsErrors>
     
     <!-- NuGet Package Metadata -->
     <PackageId>CoreBlazor</PackageId>

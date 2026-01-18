@@ -2,6 +2,6 @@ namespace CoreBlazor;
 
 public class DiscoveredContext
 {
-    public Type ContextType { get; set; }
-    public List<DiscoveredSet> Sets { get; set; }
+    public required Type ContextType { get; set; }
+    public required List<DiscoveredSet> Sets { get; set; }
 }
