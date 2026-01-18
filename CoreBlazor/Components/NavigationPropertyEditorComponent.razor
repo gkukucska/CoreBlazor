@@ -29,7 +29,7 @@
                 (!DbSetOptions?.HiddenProperties.Any(y => y.Name == x.Name && y.PropertyType == x.PropertyType) ?? true)))
         {
             <GridColumn TItem="TProperty" HeaderText="@prop.Name" PropertyName="@prop.Name" Filterable="@IsFilterable(prop)" Sortable="@IsSortable(prop)" SortString="@prop.Name" SortKeySelector="prop.GetMemberAccessExpressionWithConversion<TProperty, IComparable>()">
-                @if (_context.IsNavigation<TEntity>(prop))
+                @if (_context?.IsNavigation<TEntity>(prop) ?? false)
                 {
                     <DynamicComponent Type="@CreateNavigationPropertyViewerColumnType(prop)"
                                       Parameters="@CreateNavigationPropertyViewerColumnParameters(context,prop.Name)" />
@@ -49,12 +49,12 @@
 </Grid>
 @code {
 
-    private TContext _context;
+    private TContext? _context;
 
     public CoreBlazorDbSetOptions<TContext, TEntity>? DbSetOptions { get; set; }
 
     [Parameter]
-    public string NavigationPropertyName { get; set; }
+    public string NavigationPropertyName { get; set; } = null!;
 
     [Parameter]
     public EventCallback PropertySelected { get; set; }
@@ -69,8 +69,8 @@
             { nameof(NavigationPropertyColumnViewerComponent<DbContext, object, object>.PropertyName), propertyName}
         };
 
-    private Dictionary<string, object> CreateDiplayParameters(object propertyValue)
-        => new Dictionary<string, object>
+    private Dictionary<string, object?> CreateDiplayParameters(object? propertyValue)
+        => new Dictionary<string, object?>
         {
             {nameof(IPropertyDisplayComponent<TEntity>.PropertyValue), propertyValue},
         };
@@ -83,11 +83,16 @@
     }
 
     private async Task<GridDataProviderResult<TProperty>> GetEntities(GridDataProviderRequest<TProperty> request)
-        => await _context.ApplyTo<TProperty>(request, DbSetOptions?.UseSplitQueries ?? false);
+    { 
+        if (_context is null)
+        {
+            throw new InvalidOperationException("Db context is not initialized");
+        }
+        return await _context!.ApplyTo<TProperty>(request, DbSetOptions?.UseSplitQueries ?? false); }
 
     private bool IsFilterable(PropertyInfo prop)
     {
-        return !_context.IsNavigation<TEntity>(prop);
+        return !_context?.IsNavigation<TEntity>(prop) ?? false;
     }
 
     private bool IsSortable(PropertyInfo prop)

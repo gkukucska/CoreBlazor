@@ -10,27 +10,27 @@
 
 @if (DbSetOptions?.ComponentDisplay is not null)
 {
-    <DynamicComponent Type="DbSetOptions.ComponentDisplay" Parameters="new Dictionary<string, object>() { { nameof(IEntityDisplayComponent<TProperty>.Entity), _propertyInfo.GetValue(Entity) } }" />
+    <DynamicComponent Type="DbSetOptions.ComponentDisplay" Parameters="new Dictionary<string, object?>() { { nameof(IEntityDisplayComponent<TProperty>.Entity), _propertyInfo?.GetValue(Entity) } }" />
 }
 else if (DbSetOptions?.StringDisplay is not null)
 {
-    DbSetOptions.StringDisplay.Invoke(_propertyInfo.GetValue(Entity) as TProperty);
+    DbSetOptions.StringDisplay.Invoke(_propertyInfo?.GetValue(Entity) as TProperty);
 }
 else
 {
-    _propertyInfo.GetValue(Entity);
+    _propertyInfo?.GetValue(Entity);
 }
 
 @code {
-    private PropertyInfo _propertyInfo;
+    private PropertyInfo? _propertyInfo;
 
     public CoreBlazorDbSetOptions<TContext, TProperty>? DbSetOptions { get; set; }
 
     [Parameter]
-    public TEntity Entity { get; set; }
+    public TEntity Entity { get; set; } = null!;
 
     [Parameter]
-    public string PropertyName { get; set; }
+    public string PropertyName { get; set; } = null!;
 
     protected override void OnParametersSet()
     {

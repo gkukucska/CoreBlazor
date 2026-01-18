@@ -22,7 +22,7 @@ public abstract class CoreBlazorDbSetOptionsBuilder<TEntity> where TEntity : cla
         _entityType = typeof(TEntity);
     }
     internal CoreBlazorDbSetOptions<TEntity> Options { get; }
-    public CoreBlazorDbSetOptionsBuilder<TEntity> WithEntityDisplay(Func<TEntity, string> displayColumnMethod)
+    public CoreBlazorDbSetOptionsBuilder<TEntity> WithEntityDisplay(Func<TEntity?, string> displayColumnMethod)
     {
         Options.StringDisplay = displayColumnMethod;
         return this;

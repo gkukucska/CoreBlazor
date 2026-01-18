@@ -40,7 +40,7 @@ public class CoreBlazorDbContextOptionsBuilder<TContext> where TContext : DbCont
         var setOptionsBuilder = new CoreBlazorDbSetOptionsBuilder<TContext, TEntity>(Services);
         optionsBuilder(setOptionsBuilder);
         setOptionsBuilder.Options.UseSplitQueries = Options.UseSplitQueries;
-        Services.AddSingleton(setOptionsBuilder.Options as CoreBlazorDbSetOptions<TContext, TEntity>);
+        Services.AddSingleton((CoreBlazorDbSetOptions<TContext, TEntity>)setOptionsBuilder.Options );
         return this;
     }
 
@@ -57,7 +57,7 @@ public class CoreBlazorDbContextOptionsBuilder<TContext> where TContext : DbCont
         var setOptionsBuilder = new CoreBlazorDbSetOptionsBuilder<TContext, TEntity>(Services);
         optionsBuilder(setOptionsBuilder);
         setOptionsBuilder.Options.UseSplitQueries = Options.UseSplitQueries;
-        Services.AddSingleton(setOptionsBuilder.Options as CoreBlazorDbSetOptions<TContext, TEntity>);
+        Services.AddSingleton((CoreBlazorDbSetOptions<TContext, TEntity>)setOptionsBuilder.Options);
         return this;
     }
 

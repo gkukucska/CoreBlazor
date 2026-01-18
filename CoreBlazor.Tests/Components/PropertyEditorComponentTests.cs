@@ -57,7 +57,7 @@ public class PropertyEditorComponentTests : Bunit.TestContext
         public TestEntity? Entity { get; set; }
 
         [Parameter]
-        public EventCallback ValueSelected { get; set; }
+        public EventCallback? ValueSelected { get; set; }
 
         [Parameter]
         public bool IsDisabled { get; set; }

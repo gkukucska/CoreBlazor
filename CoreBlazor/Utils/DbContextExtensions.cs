@@ -27,13 +27,13 @@ public static class DbContextExtensions
     public static bool IsPrimaryKey<TEntity>(this DbContext context, PropertyInfo propertyInfo) where TEntity : class
     {
         var pk = context.GetPrimaryKey<TEntity>().PropertyInfo;
-        return pk.Name == propertyInfo.Name && pk.PropertyType == propertyInfo.PropertyType;
+        return pk?.Name == propertyInfo.Name && pk.PropertyType == propertyInfo.PropertyType;
     }
 
     public static bool IsGeneratedPrimaryKey<TEntity>(this DbContext context, PropertyInfo propertyInfo) where TEntity : class
     {
         var pk = context.GetPrimaryKey<TEntity>();
-        return pk.PropertyInfo.Name == propertyInfo.Name && pk.PropertyInfo.PropertyType == propertyInfo.PropertyType && pk.ValueGenerated != ValueGenerated.Never;
+        return pk.PropertyInfo?.Name == propertyInfo.Name && pk.PropertyInfo.PropertyType == propertyInfo.PropertyType && pk.ValueGenerated != ValueGenerated.Never;
     }
 
     public static IEnumerable<IForeignKey> GetForeignKeys<TEntity>(this DbContext context) where TEntity : class
@@ -47,7 +47,7 @@ public static class DbContextExtensions
     public static bool IsForeignKey<TEntity>(this DbContext context, PropertyInfo propertyInfo) where TEntity : class
     {
         var foreignKeys = context.GetForeignKeys<TEntity>();
-        return foreignKeys.Select(fk=> fk.Properties[0].PropertyInfo).Any(fk=> fk.Name == propertyInfo.Name && fk.PropertyType == propertyInfo.PropertyType);
+        return foreignKeys.Select(fk=> fk.Properties[0].PropertyInfo).Any(fk=> fk?.Name == propertyInfo.Name && fk?.PropertyType == propertyInfo.PropertyType);
     }
 
     public static IQueryable<TEntity> DbSetWithDisplayableNavigations<TEntity>(this DbContext context, bool useSplitQueries) where TEntity : class

@@ -31,36 +31,50 @@
     </NotAuthorized>
 </AuthorizeView>
 @code {
-    private TContext _context;
+    private TContext? _context;
 
     public CoreBlazorDbSetOptions<TContext, TEntity>? DbSetOptions { get; set; }
 
     [Parameter]
-    public string EntityId { get; set; }
+    public string EntityId { get; set; } = null!;
 
-    public TEntity Entity { get; set; }
+    public TEntity? Entity { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
         DbSetOptions = ServiceProvider.GetService<CoreBlazorDbSetOptions<TContext, TEntity>>();
         _context = await ContextFactory.CreateDbContextAsync();
         var set = _context.DbSetWithDisplayableNavigations<TEntity>(DbSetOptions?.UseSplitQueries ?? false);
-        var primarykey = _context.Model.FindEntityType(typeof(TEntity))!.FindPrimaryKey().Properties.Single().PropertyInfo;
+        var primarykey = _context.Model.FindEntityType(typeof(TEntity))?.FindPrimaryKey()?.Properties.Single().PropertyInfo;
+        if (primarykey is null)
+        {
+            throw new InvalidOperationException($"Entity {typeof(TEntity).Name} does not have a primary key defined.");
+        }
         ParameterExpression parameterExpression = Expression.Parameter(typeof(TEntity));
         var property = Expression.Property(parameterExpression, primarykey.Name);
         var filter = ExpressionExtensions.GetExpressionDelegate<TEntity>(parameterExpression, new FilterItem(primarykey.Name, EntityId, FilterOperator.Equals, default));
+        if (filter is null)
+        {
+            throw new InvalidOperationException($"Cannot create primary key filter for entity {typeof(TEntity).Name}.");
+        }
         Entity = await set.SingleAsync(filter);
         await base.OnParametersSetAsync();
     }
 
     public async ValueTask DisposeAsync()
-        => await _context.DisposeAsync();
+        => await (_context?.DisposeAsync() ?? ValueTask.CompletedTask);
 
     private async Task OnSaveChanges(EditContext args)
     {
+        if (Entity is null || _context is null)
+        {
+            return;
+        }
         foreach (var navigation in _context.GetNavigations<TEntity>())
         {
-            _context.Attach(navigation.PropertyInfo.GetValue(Entity));
+            var navigationValue = navigation.PropertyInfo?.GetValue(Entity)
+                                    ?? throw new InvalidOperationException($"Cannot attach navigation property {navigation.PropertyInfo?.Name} for entity {typeof(TEntity).Name}.");
+            _context.Attach(navigationValue);
         }
         _context.Remove(Entity);
         await _context.SaveChangesAsync();

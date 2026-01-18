@@ -54,7 +54,7 @@ public class ConfigurationBuilderTests
         public TestEntity? Entity { get; set; }
 
         [Parameter]
-        public EventCallback ValueSelected { get; set; }
+        public EventCallback? ValueSelected { get; set; }
 
         [Parameter]
         public bool IsDisabled { get; set; }
@@ -355,7 +355,7 @@ public class ConfigurationBuilderTests
         var options = new CoreBlazorDbSetOptions<TestDbContext, TestEntity>();
 
         // Act & Assert
-        var act = () => builder.ConfigureSet(ctx => ctx.TestEntities.Where(x => true).AsQueryable() as DbSet<TestEntity>, options);
+        var act = () => builder.ConfigureSet(ctx => (DbSet<TestEntity>)ctx.TestEntities.Where(x => true).AsQueryable(), options);
         act.Should().Throw<ArgumentException>()
             .WithMessage("*simple member expression*");
     }
@@ -369,7 +369,7 @@ public class ConfigurationBuilderTests
         var builder = new CoreBlazorDbContextOptionsBuilder<TestDbContext>(services, coreOptionsBuilder);
 
         // Act & Assert
-        var act = () => builder.ConfigureSet(ctx => ctx.TestEntities.Where(x => true).AsQueryable() as DbSet<TestEntity>, set => { });
+        var act = () => builder.ConfigureSet(ctx => (DbSet<TestEntity>)ctx.TestEntities.Where(x => true).AsQueryable(), set => { });
         act.Should().Throw<ArgumentException>()
             .WithMessage("*simple member expression*");
     }
@@ -448,7 +448,7 @@ public class ConfigurationBuilderTests
         var builder = new CoreBlazorDbSetOptionsBuilder<TestDbContext, TestEntity>(services);
 
         // Act
-        builder.WithEntityDisplay(e => e.Name);
+        builder.WithEntityDisplay(e => e?.Name ?? string.Empty);
 
         // Assert
         builder.Options.StringDisplay.Should().NotBeNull();
@@ -589,7 +589,7 @@ public class ConfigurationBuilderTests
         // Act
         builder.WithTitle("Test Entities")
                .WithSplitQueries(true)
-               .WithEntityDisplay(e => e.Name)
+               .WithEntityDisplay(e => e?.Name ?? string.Empty)
                .UserCanReadIf(user => user.IsInRole("Reader"))
                .UserCanCreateIf(user => user.IsInRole("Creator"))
                .UserCanEditIf(user => user.IsInRole("Editor"))
