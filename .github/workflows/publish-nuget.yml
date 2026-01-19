@@ -1,0 +1,61 @@
+name: Publish to NuGet
+
+on:
+  workflow_dispatch:
+    inputs:
+      is-prerelease:
+        description: 'Is this a prerelease version?'
+        required: true
+        type: boolean
+        default: true
+      prerelease-suffix:
+        description: 'Prerelease suffix (e.g., alpha, beta, rc1) - only used if is-prerelease is true'
+        required: false
+        type: string
+        default: 'beta'
+
+jobs:
+  publish: 
+    runs-on: ubuntu-latest
+    environment:
+      name: 'NuGetPublishing'
+      url: 'https://www.nuget.org/packages/CoreBlazor'
+    permissions:
+      contents: read
+
+    steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+
+        - name: Set up .NET Core
+          uses: actions/setup-dotnet@v4
+          with:
+            dotnet-version: '8.x'
+
+        - name: Build prerelease package
+          if: ${{ inputs.is-prerelease }}
+          run: |
+            VERSION=$(grep -oP '<Version>\K[^<]+' CoreBlazor/CoreBlazor.csproj)
+            PRERELEASE_VERSION="${VERSION}-${{ inputs.prerelease-suffix }}"
+            echo "Building prerelease version: ${PRERELEASE_VERSION}"
+            dotnet pack CoreBlazor/CoreBlazor.csproj -c Release -o ./nupkg -p:Version=${PRERELEASE_VERSION}
+
+        - name: Build release package
+          if: ${{ !inputs.is-prerelease }}
+          run: |
+            echo "Building release version"
+            dotnet pack CoreBlazor/CoreBlazor.csproj -c Release -o ./nupkg
+
+        - name: List packages
+          run: ls -la ./nupkg
+
+        - name: Publish to NuGet.org
+          run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+        - name: Summary
+          run: |
+            if [ "${{ inputs.is-prerelease }}" == "true" ]; then
+              echo "Published prerelease package with suffix: ${{ inputs.prerelease-suffix }}"
+            else
+              echo "Published release package"
+            fi
